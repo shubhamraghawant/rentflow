@@ -32,6 +32,45 @@ function handleInstallAppClick() {
   }
 }
 
+// Offline Backup & Restore handlers
+function exportDataBackup() {
+  try {
+    const jsonStr = API.exportBackup();
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const today = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `rentflow-backup-${today}.json`;
+    a.click();
+    showToast('Full backup downloaded to your device!', 'success');
+  } catch (err) {
+    showToast('Failed to export backup: ' + err.message, 'error');
+  }
+}
+
+function importDataBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const res = API.importBackup(e.target.result);
+      if (res.success) {
+        showToast(res.message, 'success');
+        await loadSettingsAndFactors();
+        await loadBillingDashboard();
+      } else {
+        showToast(res.error || 'Failed to restore backup', 'error');
+      }
+    } catch (err) {
+      showToast('Invalid backup file: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
 // App State
 const state = {
   currentMonth: new Date().toISOString().slice(0, 7), // "2026-11"
