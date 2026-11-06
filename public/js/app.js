@@ -1,3 +1,37 @@
+// Register Service Worker for PWA / Mobile App
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker registered with scope:', reg.scope))
+      .catch(err => console.log('Service Worker registration failed:', err));
+  });
+}
+
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const installBtn = document.getElementById('install-app-btn');
+  if (installBtn) {
+    installBtn.style.display = 'inline-flex';
+  }
+});
+
+function handleInstallAppClick() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        showToast('RentFlow installed on your device!', 'success');
+      }
+      deferredInstallPrompt = null;
+    });
+  } else {
+    // Show step-by-step instructions for Android & iOS
+    document.getElementById('install-guide-modal').classList.add('active');
+  }
+}
+
 // App State
 const state = {
   currentMonth: new Date().toISOString().slice(0, 7), // "2026-11"
@@ -879,6 +913,12 @@ async function handleSettingsFormSubmit(e) {
 
 // Event Listeners Registration
 function setupEventListeners() {
+  // Install app button
+  const installBtn = document.getElementById('install-app-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', handleInstallAppClick);
+  }
+
   // Navigation
   document.querySelectorAll('.nav-item').forEach(el => {
     el.addEventListener('click', (e) => {

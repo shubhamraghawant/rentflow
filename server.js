@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+const os = require('os');
 const db = require('./src/db');
 const settingsRoutes = require('./src/routes/settings');
 const roomsRoutes = require('./src/routes/rooms');
@@ -50,8 +51,31 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, error: 'Internal Server Error', details: err.message });
 });
 
+function getLocalIpAddresses() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ips.push(iface.address);
+      }
+    }
+  }
+  return ips;
+}
+
 const server = app.listen(PORT, HOST, () => {
-  console.log(`⚡ RentFlow is running on http://localhost:${PORT}`);
+  const localIps = getLocalIpAddresses();
+  console.log(`\n======================================================`);
+  console.log(`⚡ RentFlow is running!`);
+  console.log(`💻 Local (Mac / PC):  http://localhost:${PORT}`);
+  if (localIps.length > 0) {
+    for (const ip of localIps) {
+      console.log(`📱 Mobile (Wi-Fi):     http://${ip}:${PORT}`);
+    }
+    console.log(`👉 Open the Mobile URL in your phone browser to install as an app!`);
+  }
+  console.log(`======================================================\n`);
 });
 
 module.exports = { app, server };

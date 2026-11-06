@@ -2,8 +2,19 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>RentFlow • Modern Rent & Light Bill Manager</title>
+  
+  <!-- Mobile & PWA meta tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RentFlow">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -41,8 +52,11 @@
       </nav>
 
       <div class="sidebar-footer">
+        <button id="install-app-btn" class="theme-toggle-btn" style="border-color: var(--accent-blue); color: var(--accent-blue);" title="Install RentFlow on your phone as a mobile app">
+          <span>📲</span> Install App
+        </button>
         <button id="theme-toggle-btn" class="theme-toggle-btn">
-          <span>☀️</span> Light Mode
+          <span>☀️</span> Light
         </button>
       </div>
     </aside>
@@ -391,6 +405,49 @@
         <button type="button" class="btn-secondary" id="modal-btn-copy">📋 Copy Text</button>
         <button type="button" class="btn-sms" id="modal-btn-sms">📱 SMS</button>
         <button type="button" class="btn-whatsapp" id="modal-btn-whatsapp">💬 Send via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Mobile Install Instructions Modal -->
+  <div class="modal-overlay" id="install-guide-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">📲 Install RentFlow on Your Phone</h3>
+        <button class="modal-close-btn" onclick="closeModal('install-guide-modal')">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 1.25rem;">
+        <p style="font-size: 0.9rem; color: var(--text-muted);">
+          RentFlow installs directly onto your phone without requiring app store downloads:
+        </p>
+        
+        <!-- Android Instructions -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+          <h4 style="font-size: 0.95rem; color: var(--accent-emerald); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🤖</span> For Android (Chrome / Brave):
+          </h4>
+          <ol style="font-size: 0.85rem; color: var(--text-main); margin-left: 1.25rem; line-height: 1.6;">
+            <li>Tap the <strong>three dots (⋮)</strong> in Chrome at the top right.</li>
+            <li>Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+            <li>Tap <strong>Install</strong>. RentFlow will appear as an app on your phone!</li>
+          </ol>
+        </div>
+
+        <!-- iOS Instructions -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+          <h4 style="font-size: 0.95rem; color: var(--accent-blue); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🍎</span> For iPhone (Safari):
+          </h4>
+          <ol style="font-size: 0.85rem; color: var(--text-main); margin-left: 1.25rem; line-height: 1.6;">
+            <li>Open this page in <strong>Safari</strong>.</li>
+            <li>Tap the <strong>Share button</strong> (<span style="font-size: 1rem;">⎙</span> / square with arrow pointing up).</li>
+            <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
+            <li>Tap <strong>Add</strong> in the top right.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" onclick="closeModal('install-guide-modal')">Got it!</button>
       </div>
     </div>
   </div>
