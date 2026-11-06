@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentFlow • Modern Rent & Light Bill Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-title">RentFlow</div>
+          <div class="brand-tag" id="brand-property-name">Property Manager</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item active" data-view="billing-view">
+          <span class="nav-icon">📊</span>
+          <span>Bill Generator</span>
+        </a>
+        <a class="nav-item" data-view="rooms-view">
+          <span class="nav-icon">🚪</span>
+          <span>Rooms & Tenants</span>
+        </a>
+        <a class="nav-item" data-view="history-view">
+          <span class="nav-icon">📜</span>
+          <span>Ledgers & History</span>
+        </a>
+        <a class="nav-item" data-view="settings-view">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings & Notice</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="theme-toggle-btn" class="theme-toggle-btn">
+          <span>☀️</span> Light Mode
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+      <!-- Top Sticky Runtime Factor Control Strip -->
+      <header class="top-header">
+        <div class="factor-strip">
+          <div class="factor-group">
+            <!-- Electricity Rate Factor Card -->
+            <div class="factor-card" title="Light bill factor per unit. Saved in backend, editable in runtime!">
+              <span style="font-size: 1.3rem;">⚡</span>
+              <div class="factor-label">
+                <span class="factor-title">Electricity Rate</span>
+                <span class="factor-sub">Factor / Unit</span>
+              </div>
+              <div class="factor-input-wrap">
+                <span class="factor-input-prefix">₹</span>
+                <input
+                  type="number"
+                  step="0.1"
+                  id="runtime-elec-rate"
+                  class="factor-input"
+                  value="10"
+                />
+              </div>
+            </div>
+
+            <!-- Base Rent Factor Card -->
+            <div class="factor-card" title="Default base rent. Saved in backend, editable in runtime!">
+              <span style="font-size: 1.3rem;">🏠</span>
+              <div class="factor-label">
+                <span class="factor-title">Default Base Rent</span>
+                <span class="factor-sub">Per Month</span>
+              </div>
+              <div class="factor-input-wrap">
+                <span class="factor-input-prefix">₹</span>
+                <input
+                  type="number"
+                  step="100"
+                  id="runtime-default-rent"
+                  class="factor-input rent-input"
+                  value="6000"
+                />
+              </div>
+            </div>
+
+            <!-- Update Factors Button -->
+            <button class="btn-factor-save" onclick="saveRuntimeFactors()" title="Save updated factors to backend and recalculate">
+              Save Factors
+            </button>
+          </div>
+
+          <!-- Billing Month Selector -->
+          <div class="period-picker">
+            <span style="color: var(--text-dim); font-size: 0.85rem; font-weight: 600;">PERIOD:</span>
+            <select id="billing-month-select" class="period-select">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <main class="content-area">
+
+        <!-- 1. BILL GENERATOR VIEW -->
+        <section id="billing-view" class="view-section active">
+          <!-- Summary Metrics Ribbon -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Occupied Rooms</span>
+              <span class="stat-val" id="stat-total-rooms">0</span>
+              <span class="stat-subtext" id="stat-billed-rooms">0 / 0 billed this month</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Power Consumption</span>
+              <span class="stat-val" id="stat-total-units">0 units</span>
+              <span class="stat-subtext">Sum of all tenant meters</span>
+            </div>
+            <div class="stat-card emerald">
+              <span class="stat-label">Total Expected</span>
+              <span class="stat-val" id="stat-total-collection">₹0</span>
+              <span class="stat-subtext">Rent + Light Bills</span>
+            </div>
+            <div class="stat-card amber">
+              <span class="stat-label">Collected / Pending</span>
+              <span class="stat-val" id="stat-pending">₹0</span>
+              <span class="stat-subtext"><span id="stat-collected" style="color: #34d399;">₹0</span> collected</span>
+            </div>
+          </div>
+
+          <!-- Section Action Header -->
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">⚡ Monthly Light & Rent Billing</h2>
+              <p class="section-desc">Enter meter readings. Units & electricity bill calculate automatically with runtime rate.</p>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+              <button class="btn-secondary" onclick="loadBillingDashboard()">🔄 Refresh</button>
+              <button class="btn-primary" onclick="openAddRoomModal()">+ Add Room & Tenant</button>
+            </div>
+          </div>
+
+          <!-- Room Billing Cards Grid -->
+          <div class="room-bills-grid" id="room-bills-container">
+            <!-- Dynamically populated room cards -->
+          </div>
+        </section>
+
+        <!-- 2. ROOMS & TENANTS VIEW -->
+        <section id="rooms-view" class="view-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">🚪 Rooms & Tenants Directory</h2>
+              <p class="section-desc">Manage room configurations, resident tenant names, and contact phone numbers.</p>
+            </div>
+            <button class="btn-primary" onclick="openAddRoomModal()">+ Add New Room</button>
+          </div>
+
+          <div class="data-table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Room</th>
+                  <th>Floor</th>
+                  <th>Tenant / Resident</th>
+                  <th>Phone / WhatsApp</th>
+                  <th>Base Rent</th>
+                  <th>Initial Meter</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rooms-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 3. LEDGERS & HISTORY VIEW -->
+        <section id="history-view" class="view-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">📜 Billing History & Audit Ledgers</h2>
+              <p class="section-desc">View, filter, and export all generated monthly bills and payment records.</p>
+            </div>
+            <button class="btn-secondary" onclick="exportHistoryCsv()">📥 Export to CSV</button>
+          </div>
+
+          <div class="data-table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Room</th>
+                  <th>Tenant</th>
+                  <th>Meter Readings</th>
+                  <th>Light Bill</th>
+                  <th>Rent</th>
+                  <th>Total Due</th>
+                  <th>Payment Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 4. SETTINGS & NOTICE VIEW -->
+        <section id="settings-view" class="view-section">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">⚙️ App Settings & Notification Template</h2>
+              <p class="section-desc">Configure your property name, UPI ID for receiving payments, and customize the message sent to tenants.</p>
+            </div>
+          </div>
+
+          <form id="settings-form" style="max-width: 750px; display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-blue);">Landlord & Payment Details</h3>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-field-group">
+                  <label>Property / Landlord Name</label>
+                  <input type="text" id="setting-landlord-name" class="custom-input" placeholder="e.g. Shubham Properties">
+                </div>
+                <div class="input-field-group">
+                  <label>Landlord Contact (GPay / PhonePe)</label>
+                  <input type="text" id="setting-landlord-phone" class="custom-input" placeholder="+91 98765 43210">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-field-group">
+                  <label>UPI ID (For Direct Payments)</label>
+                  <input type="text" id="setting-upi-id" class="custom-input" placeholder="yourname@okaxis">
+                </div>
+                <div class="input-field-group">
+                  <label>Default Rent Due Day</label>
+                  <input type="number" id="setting-due-day" min="1" max="28" class="custom-input" placeholder="5">
+                </div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-blue);">Default Billing Factors</h3>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-field-group">
+                  <label>Default Electricity Rate (₹ / Unit)</label>
+                  <input type="number" step="0.1" id="setting-elec-rate" class="custom-input" placeholder="10">
+                </div>
+                <div class="input-field-group">
+                  <label>Default Base Rent (₹ / Month)</label>
+                  <input type="number" id="setting-default-rent" class="custom-input" placeholder="6000">
+                </div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-blue);">WhatsApp & SMS Notice Template</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">
+                Variables supported: <code>{tenant_name}</code>, <code>{room_number}</code>, <code>{billing_month}</code>, <code>{previous_reading}</code>, <code>{current_reading}</code>, <code>{units_consumed}</code>, <code>{electricity_rate}</code>, <code>{electricity_amount}</code>, <code>{rent_amount}</code>, <code>{total_amount}</code>, <code>{due_date}</code>, <code>{payment_info}</code>, <code>{landlord_name}</code>.
+              </p>
+              
+              <div class="input-field-group">
+                <textarea id="setting-template" class="custom-input" style="height: 220px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5;"></textarea>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-blue);">Automated SMS Gateway (Optional)</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">
+                Leave as "none" to use 100% free direct WhatsApp and device SMS links. Or enter API details for automated background dispatch.
+              </p>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-field-group">
+                  <label>Gateway Provider</label>
+                  <select id="setting-sms-gateway" class="custom-input">
+                    <option value="none">None (Direct WhatsApp / Mobile SMS Intent)</option>
+                    <option value="fast2sms">Fast2SMS</option>
+                    <option value="webhook">Custom Webhook URL</option>
+                  </select>
+                </div>
+                <div class="input-field-group">
+                  <label>API Key / Webhook URL</label>
+                  <input type="password" id="setting-sms-key" class="custom-input" placeholder="API key or webhook endpoint">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button type="submit" class="btn-primary" style="padding: 0.75rem 2rem;">Save All Settings</button>
+            </div>
+          </form>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. Add / Edit Room Modal -->
+  <div class="modal-overlay" id="room-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="room-form-title">Add Room & Tenant</h3>
+        <button class="modal-close-btn" onclick="closeModal('room-modal')">&times;</button>
+      </div>
+      <form id="room-form">
+        <input type="hidden" id="room-form-id">
+        <div class="modal-body">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-field-group">
+              <label>Room Number / Name *</label>
+              <input type="text" id="room-form-number" class="custom-input" placeholder="e.g. 101, 202, Flat 1B" required>
+            </div>
+            <div class="input-field-group">
+              <label>Floor / Wing</label>
+              <input type="text" id="room-form-floor" class="custom-input" placeholder="e.g. 1st Floor">
+            </div>
+          </div>
+
+          <div class="input-field-group">
+            <label>Tenant / Resident Full Name *</label>
+            <input type="text" id="room-form-tenant" class="custom-input" placeholder="e.g. Rahul Sharma" required>
+          </div>
+
+          <div class="input-field-group">
+            <label>Tenant WhatsApp / Phone Number *</label>
+            <input type="tel" id="room-form-phone" class="custom-input" placeholder="e.g. +91 9876543210" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-field-group">
+              <label>Base Monthly Rent (₹)</label>
+              <input type="number" id="room-form-rent" class="custom-input" placeholder="6000">
+            </div>
+            <div class="input-field-group">
+              <label>Initial Meter Reading</label>
+              <input type="number" id="room-form-reading" class="custom-input" placeholder="0">
+            </div>
+          </div>
+
+          <div class="input-field-group">
+            <label>Occupancy Status</label>
+            <select id="room-form-status" class="custom-input">
+              <option value="occupied">Occupied</option>
+              <option value="vacant">Vacant</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('room-modal')">Cancel</button>
+          <button type="submit" class="btn-primary">Save Room Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Notice Preview & Dispatch Modal -->
+  <div class="modal-overlay" id="preview-notice-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="preview-modal-title">Notice Preview</h3>
+        <button class="modal-close-btn" onclick="closeModal('preview-notice-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          This is the formatted notification message ready for instant dispatch to your tenant:
+        </p>
+        <div class="notice-preview-box" id="preview-modal-content">
+          <!-- Text preview -->
+        </div>
+      </div>
+      <div class="modal-footer" style="flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" onclick="printNoticeReceipt()">🖨️ Print Invoice</button>
+        <button type="button" class="btn-secondary" id="modal-btn-copy">📋 Copy Text</button>
+        <button type="button" class="btn-sms" id="modal-btn-sms">📱 SMS</button>
+        <button type="button" class="btn-whatsapp" id="modal-btn-whatsapp">💬 Send via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
