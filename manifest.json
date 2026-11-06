@@ -1,0 +1,42 @@
+{
+  "name": "RentFlow • Rent & Light Bill Manager",
+  "short_name": "RentFlow",
+  "description": "Minimal modern Rent & Electricity Bill notification manager for landlords & tenants",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["finance", "utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Bill Generator",
+      "url": "/#billing-view",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Rooms Directory",
+      "url": "/#rooms-view",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
