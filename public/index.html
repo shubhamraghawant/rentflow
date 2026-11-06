@@ -315,6 +315,25 @@
               </div>
             </div>
 
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 0.5rem;">
+                <span>💾</span> Offline Backup & Restore
+              </h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">
+                Since RentFlow is 100% offline, all data is safely saved on this device. You can download a backup file anytime to transfer your records to another phone or computer.
+              </p>
+              
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="button" class="btn-secondary" onclick="exportDataBackup()" style="display: flex; align-items: center; gap: 0.4rem;">
+                  <span>📥</span> Download Full Backup (JSON)
+                </button>
+                <label class="btn-secondary" style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                  <span>📤</span> Restore from Backup
+                  <input type="file" id="import-backup-file" accept=".json" style="display: none;" onchange="importDataBackup(event)">
+                </label>
+              </div>
+            </div>
+
             <div>
               <button type="submit" class="btn-primary" style="padding: 0.75rem 2rem;">Save All Settings</button>
             </div>
@@ -456,6 +475,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Scripts -->
+  <script src="/js/storage.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/app.js"></script>
 </body>
