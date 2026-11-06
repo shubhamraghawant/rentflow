@@ -1,0 +1,28 @@
+{
+  "name": "rentflow",
+  "version": "1.0.0",
+  "description": "Minimal modern Rent & Electricity Bill notification manager for landlords & tenants",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test tests/app.test.js"
+  },
+  "keywords": [
+    "rent",
+    "light-bill",
+    "electricity-bill",
+    "tenant-management",
+    "whatsapp-notification",
+    "sms-notification",
+    "property-management"
+  ],
+  "author": "Shubham Raghawant <shubhamraghawant@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
