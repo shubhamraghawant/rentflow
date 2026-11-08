@@ -1,8 +1,21 @@
 # ⚡ RentFlow
 
 > **Minimal Modern Rent & Electricity Bill Notification Platform for Landlords and Tenants**
+>
+> 🌐 **Live Independent Web App:** [https://shubhamraghawant.github.io/rentflow/](https://shubhamraghawant.github.io/rentflow/)
 
-RentFlow is a lightweight, responsive, and elegant property billing application designed for landlords. It simplifies monthly tenant billing by tracking electricity meter readings, calculating power consumption differences with runtime rate factors, managing room rents, and dispatching pre-formatted invoices directly through **WhatsApp** and **SMS** with a single click.
+RentFlow is a 100% standalone, offline-first property billing application designed for landlords. It simplifies monthly tenant billing by tracking electricity meter readings, calculating power consumption differences with runtime rate factors, managing room rents, and dispatching pre-formatted invoices directly through **WhatsApp** and **SMS** with a single click.
+
+---
+
+## 📱 100% Independent & Offline-First (No Mac / Server Required)
+
+RentFlow runs **entirely in your phone or browser** with **zero server dependencies**:
+- **Direct Link**: [https://shubhamraghawant.github.io/rentflow/](https://shubhamraghawant.github.io/rentflow/)
+- **Install as Mobile App**: Open the link on your Android or iPhone and tap **"Add to Home Screen"**.
+- **Permanent Offline Cache**: Service Worker caches all files on your device so the app opens and works even with 0% internet.
+- **Local Storage Engine**: All rooms, tenants, meter readings, and bill history are saved inside your phone's persistent storage.
+- **Instant WhatsApp & SMS**: Tapping "WhatsApp Bill" opens your phone's native WhatsApp app with the pre-filled bill ready to send.
 
 ---
 
