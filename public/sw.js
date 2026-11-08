@@ -1,15 +1,15 @@
-const CACHE_NAME = 'rentflow-v1';
+const CACHE_NAME = 'rentflow-v2';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/storage.js',
-  '/js/api.js',
-  '/js/app.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/icon.svg'
+  './',
+  './index.html',
+  './css/styles.css',
+  './js/storage.js',
+  './js/api.js',
+  './js/app.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
