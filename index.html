@@ -50,15 +50,6 @@
           <span>Settings & Notice</span>
         </a>
       </nav>
-
-      <div class="sidebar-footer">
-        <button id="install-app-btn" class="theme-toggle-btn" style="border-color: var(--accent-blue); color: var(--accent-blue);" title="Install RentFlow on your phone as a mobile app">
-          <span>📲</span> Install App
-        </button>
-        <button id="theme-toggle-btn" class="theme-toggle-btn">
-          <span>🌙</span> Dark
-        </button>
-      </div>
     </aside>
 
     <!-- Main Workspace -->
@@ -154,11 +145,7 @@
           <div class="section-header">
             <div>
               <h2 class="section-title">⚡ Monthly Light & Rent Billing</h2>
-              <p class="section-desc">Enter meter readings. Units & electricity bill calculate automatically with runtime rate.</p>
-            </div>
-            <div style="display: flex; gap: 0.75rem;">
-              <button class="btn-secondary" onclick="loadBillingDashboard()">🔄 Refresh</button>
-              <button class="btn-primary" onclick="openAddRoomModal()">+ Add Room & Tenant</button>
+              <p class="section-desc">Enter meter readings. Units & electricity bill calculate automatically.</p>
             </div>
           </div>
 
@@ -294,28 +281,6 @@
             </div>
 
             <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
-              <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-blue);">Automated SMS Gateway (Optional)</h3>
-              <p style="font-size: 0.8rem; color: var(--text-muted);">
-                Leave as "none" to use 100% free direct WhatsApp and device SMS links. Or enter API details for automated background dispatch.
-              </p>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="input-field-group">
-                  <label>Gateway Provider</label>
-                  <select id="setting-sms-gateway" class="custom-input">
-                    <option value="none">None (Direct WhatsApp / Mobile SMS Intent)</option>
-                    <option value="fast2sms">Fast2SMS</option>
-                    <option value="webhook">Custom Webhook URL</option>
-                  </select>
-                </div>
-                <div class="input-field-group">
-                  <label>API Key / Webhook URL</label>
-                  <input type="password" id="setting-sms-key" class="custom-input" placeholder="API key or webhook endpoint">
-                </div>
-              </div>
-            </div>
-
-            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
               <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 0.5rem;">
                 <span>💾</span> Offline Backup & Restore
               </h3>
@@ -419,10 +384,8 @@
           <!-- Text preview -->
         </div>
       </div>
-      <div class="modal-footer" style="flex-wrap: wrap;">
-        <button type="button" class="btn-secondary" onclick="printNoticeReceipt()">🖨️ Print Invoice</button>
-        <button type="button" class="btn-secondary" id="modal-btn-copy">📋 Copy Text</button>
-        <button type="button" class="btn-sms" id="modal-btn-sms">📱 SMS</button>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('preview-notice-modal')">Close</button>
         <button type="button" class="btn-whatsapp" id="modal-btn-whatsapp">💬 Send via WhatsApp</button>
       </div>
     </div>
