@@ -326,41 +326,31 @@ function renderRoomCards() {
             <!-- Previous Reading -->
             <div class="input-field-group">
               <label>Prev Reading (Units)</label>
-              <div class="reading-input-wrap">
-                <input
-                  type="number"
-                  step="any"
-                  class="custom-input prev-reading-input"
-                  id="prev-reading-${room.id}"
-                  value="${prevReading}"
-                  data-room-id="${room.id}"
-                  placeholder="0"
-                  oninput="handleReadingChange(${room.id})"
-                />
-                <button
-                  type="button"
-                  class="helper-btn"
-                  title="Set Previous Reading = Current Reading + 1 (As configured)"
-                  onclick="applyOffsetReading(${room.id})"
-                >+1</button>
-              </div>
+              <input
+                type="number"
+                step="any"
+                class="custom-input prev-reading-input"
+                id="prev-reading-${room.id}"
+                value="${prevReading}"
+                data-room-id="${room.id}"
+                placeholder="0"
+                oninput="handleReadingChange(${room.id})"
+              />
             </div>
 
             <!-- Current Reading -->
             <div class="input-field-group">
               <label class="label-highlight">New Reading (Enter here)</label>
-              <div class="reading-input-wrap">
-                <input
-                  type="number"
-                  step="any"
-                  class="custom-input current-reading-input"
-                  id="curr-reading-${room.id}"
-                  value="${currReading}"
-                  data-room-id="${room.id}"
-                  placeholder="Enter new meter units"
-                  oninput="handleReadingChange(${room.id})"
-                />
-              </div>
+              <input
+                type="number"
+                step="any"
+                class="custom-input current-reading-input"
+                id="curr-reading-${room.id}"
+                value="${currReading}"
+                data-room-id="${room.id}"
+                placeholder="Enter new meter units"
+                oninput="handleReadingChange(${room.id})"
+              />
             </div>
           </div>
 
@@ -377,8 +367,8 @@ function renderRoomCards() {
           </div>
         </div>
 
-        <!-- Rent & Other Row -->
-        <div class="charges-row">
+        <!-- Rent Row -->
+        <div class="charges-row" style="grid-template-columns: 1fr;">
           <div class="input-field-group">
             <label>Room Rent (₹)</label>
             <input
@@ -386,17 +376,6 @@ function renderRoomCards() {
               class="custom-input rent-amount-input"
               id="rent-amt-${room.id}"
               value="${rentAmount}"
-              data-room-id="${room.id}"
-              oninput="handleReadingChange(${room.id})"
-            />
-          </div>
-          <div class="input-field-group">
-            <label>Other (₹)</label>
-            <input
-              type="number"
-              class="custom-input other-charges-input"
-              id="other-amt-${room.id}"
-              value="${bill ? bill.other_charges : 0}"
               data-room-id="${room.id}"
               oninput="handleReadingChange(${room.id})"
             />
@@ -494,10 +473,10 @@ async function saveRoomBill(roomId, silent = false) {
   const rentInput = document.getElementById(`rent-amt-${roomId}`);
   const otherInput = document.getElementById(`other-amt-${roomId}`);
 
-  const prev = Number(prevInput.value);
-  const curr = Number(currInput.value);
-  const rent = Number(rentInput.value);
-  const other = Number(otherInput.value) || 0;
+  const prev = Number(prevInput ? prevInput.value : 0);
+  const curr = Number(currInput ? currInput.value : 0);
+  const rent = Number(rentInput ? rentInput.value : 0);
+  const other = Number(otherInput ? otherInput.value : 0) || 0;
 
   if (isNaN(curr) || currInput.value.trim() === '') {
     showToast(`Please enter Current Reading for Room ${room.room_number}`, 'error');
@@ -688,20 +667,26 @@ async function previewNoticeModal(roomId) {
   title.textContent = `Bill Notice • Room ${data.room_number} (${data.tenant_name})`;
   content.textContent = data.message;
 
-  waBtn.onclick = () => {
-    API.recordDispatch(bill.id, 'whatsapp');
-    window.open(data.whatsapp_url, '_blank');
-  };
+  if (waBtn) {
+    waBtn.onclick = () => {
+      API.recordDispatch(bill.id, 'whatsapp');
+      window.open(data.whatsapp_url, '_blank');
+    };
+  }
 
-  smsBtn.onclick = () => {
-    API.recordDispatch(bill.id, 'sms');
-    window.location.href = data.sms_url;
-  };
+  if (smsBtn) {
+    smsBtn.onclick = () => {
+      API.recordDispatch(bill.id, 'sms');
+      window.location.href = data.sms_url;
+    };
+  }
 
-  copyBtn.onclick = () => {
-    navigator.clipboard.writeText(data.message);
-    showToast('Notice copied to clipboard!', 'success');
-  };
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(data.message);
+      showToast('Notice copied to clipboard!', 'success');
+    };
+  }
 
   modal.classList.add('active');
 }
@@ -878,8 +863,7 @@ async function loadBillingHistory() {
           <span class="bill-status-pill ${b.status === 'paid' ? 'paid' : 'unpaid'}">${b.status}</span>
         </td>
         <td>
-          <button class="btn-sm-action" onclick="sendWhatsAppNotification(${b.room_id})">💬</button>
-          <button class="btn-sm-action" onclick="previewNoticeModal(${b.room_id})">👁️</button>
+          <button class="btn-whatsapp" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);" onclick="sendWhatsAppNotification(${b.room_id})">💬 WhatsApp</button>
         </td>
       </tr>
     `).join('');
@@ -926,8 +910,10 @@ async function loadSettingsForm() {
     document.getElementById('setting-default-rent').value = settings.default_rent || 6000;
     document.getElementById('setting-due-day').value = settings.due_day_of_month || 5;
     document.getElementById('setting-template').value = settings.message_template || '';
-    document.getElementById('setting-sms-gateway').value = settings.sms_gateway || 'none';
-    document.getElementById('setting-sms-key').value = settings.sms_api_key || '';
+    const smsGatewayEl = document.getElementById('setting-sms-gateway');
+    const smsKeyEl = document.getElementById('setting-sms-key');
+    if (smsGatewayEl) smsGatewayEl.value = settings.sms_gateway || 'none';
+    if (smsKeyEl) smsKeyEl.value = settings.sms_api_key || '';
   } catch (err) {
     showToast('Failed to load settings', 'error');
   }
@@ -943,8 +929,8 @@ async function handleSettingsFormSubmit(e) {
     default_rent: document.getElementById('setting-default-rent').value,
     due_day_of_month: document.getElementById('setting-due-day').value,
     message_template: document.getElementById('setting-template').value,
-    sms_gateway: document.getElementById('setting-sms-gateway').value,
-    sms_api_key: document.getElementById('setting-sms-key').value
+    sms_gateway: document.getElementById('setting-sms-gateway') ? document.getElementById('setting-sms-gateway').value : 'none',
+    sms_api_key: document.getElementById('setting-sms-key') ? document.getElementById('setting-sms-key').value : ''
   };
 
   try {
