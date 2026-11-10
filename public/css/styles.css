@@ -866,6 +866,68 @@ body {
   text-decoration: underline;
 }
 
+.btn-badge-edit {
+  background-color: var(--pastel-blue-bg);
+  border: 1px solid var(--pastel-blue-border);
+  color: var(--pastel-blue-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: var(--transition);
+  line-height: 1.2;
+}
+
+.btn-badge-edit:hover {
+  background-color: var(--pastel-blue-text);
+  color: #FFFFFF;
+}
+
+.btn-badge-delete {
+  background-color: var(--pastel-rose-bg);
+  border: 1px solid var(--pastel-rose-border);
+  color: var(--pastel-rose-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: var(--transition);
+  line-height: 1.2;
+}
+
+.btn-badge-delete:hover {
+  background-color: var(--pastel-rose-text);
+  color: #FFFFFF;
+}
+
+.btn-sm-action {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-sm-action:hover {
+  border-color: var(--pastel-blue-border);
+  background-color: var(--pastel-blue-bg);
+}
+
 /* Tables (Directory & History) */
 .data-table-card {
   background-color: var(--bg-card);
