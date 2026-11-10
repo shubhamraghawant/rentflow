@@ -221,8 +221,8 @@ async function saveRuntimeFactors() {
 // Load Billing Dashboard (Cards Grid + Summary)
 async function loadBillingDashboard() {
   try {
-    // 1. Fetch Rooms
-    const roomsRes = await API.getRooms({ status: 'occupied' });
+    // 1. Fetch Rooms (all rooms so vacant rooms can also be assigned or viewed)
+    const roomsRes = await API.getRooms();
     state.rooms = roomsRes.rooms || [];
 
     // 2. Fetch Existing Bills for this month
@@ -280,6 +280,7 @@ function renderRoomCards() {
   }
 
   container.innerHTML = state.rooms.map(room => {
+    const isVacant = room.status === 'vacant';
     const bill = state.billsMap[room.id];
     const isBilled = !!bill;
 
@@ -287,6 +288,73 @@ function renderRoomCards() {
     const prevReading = isBilled ? bill.previous_reading : room.effective_previous_reading;
     const currReading = isBilled ? bill.current_reading : '';
     const rentAmount = isBilled ? bill.rent_amount : (room.base_rent || state.defaultRent);
+
+    if (isVacant) {
+      return `
+        <div class="bill-card pending-bill" id="card-room-${room.id}" style="border: 1.5px dashed var(--pastel-amber-border); background-color: var(--pastel-amber-bg);">
+          <div class="bill-card-top">
+            <div class="room-badge-group">
+              <div class="room-avatar" style="background: #FFFFFF; color: var(--pastel-amber-text); border: 1px solid var(--pastel-amber-border);">${room.room_number}</div>
+              <div class="tenant-meta">
+                <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                  <h4 style="color: var(--pastel-amber-text);">Room ${room.room_number} (Vacant)</h4>
+                  <button
+                    type="button"
+                    class="btn-badge-edit"
+                    onclick="openEditRoomModal(${room.id})"
+                    title="Edit room settings"
+                  >✏️ Edit</button>
+                </div>
+                <div class="tenant-phone">
+                  <span>⚪ No active tenant</span>
+                  <span style="margin: 0 4px;">•</span>
+                  <span>${room.floor || 'Floor'}</span>
+                </div>
+              </div>
+            </div>
+            <span class="bill-status-pill unbilled">Vacant</span>
+          </div>
+
+          <div style="padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+              <span style="color: var(--text-dim);">Last Meter Reading:</span>
+              <strong>${prevReading} units</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+              <span style="color: var(--text-dim);">Standard Monthly Rent:</span>
+              <strong>₹${Number(room.base_rent || state.defaultRent).toLocaleString('en-IN')}</strong>
+            </div>
+          </div>
+
+          <div class="card-actions-single" style="margin-top: 0.75rem;">
+            <button
+              type="button"
+              class="btn-primary"
+              style="width: 100%; min-height: 50px; font-size: 1rem;"
+              onclick="openVacateTenantModal(${room.id})"
+            >
+              ➕ Assign New Tenant to Room ${room.room_number}
+            </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
+              <button
+                type="button"
+                class="btn-text-link"
+                onclick="openEditRoomModal(${room.id})"
+              >
+                ✏️ Edit Room Config
+              </button>
+              <button
+                type="button"
+                class="btn-text-link"
+                onclick="openTenantStatementModal(${room.id})"
+              >
+                📜 View Past Records
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     let units = 0;
     let elecAmount = 0;
@@ -330,7 +398,21 @@ function renderRoomCards() {
           <div class="room-badge-group">
             <div class="room-avatar">${room.room_number}</div>
             <div class="tenant-meta">
-              <h4>${escapeHtml(room.tenant_name)}</h4>
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                <h4>${escapeHtml(room.tenant_name)}</h4>
+                <button
+                  type="button"
+                  class="btn-badge-edit"
+                  onclick="openEditRoomModal(${room.id})"
+                  title="Edit tenant details (name, phone, rent)"
+                >✏️ Edit</button>
+                <button
+                  type="button"
+                  class="btn-badge-delete"
+                  onclick="openVacateTenantModal(${room.id})"
+                  title="Delete or change tenant details when tenant leaves"
+                >🗑️ Delete Tenant</button>
+              </div>
               <div class="tenant-phone">
                 <span>📞</span>
                 <span>${room.tenant_phone}</span>
@@ -442,14 +524,34 @@ function renderRoomCards() {
             </button>
           </div>
 
-          <button
-            type="button"
-            class="btn-text-link"
-            onclick="openTenantStatementModal(${room.id})"
-            title="View complete bill and payment history for this tenant"
-          >
-            📜 View Tenant Ledger & Statement
-          </button>
+          <!-- Card Action Links: Edit, Delete, Statement -->
+          <div style="display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; margin-top: 0.35rem; flex-wrap: wrap; padding-top: 0.4rem; border-top: 1px dashed var(--border-subtle);">
+            <button
+              type="button"
+              class="btn-text-link"
+              onclick="openEditRoomModal(${room.id})"
+              title="Edit tenant name, phone, rent"
+            >
+              ✏️ Edit Tenant
+            </button>
+            <button
+              type="button"
+              class="btn-text-link"
+              style="color: var(--pastel-rose-text);"
+              onclick="openVacateTenantModal(${room.id})"
+              title="Delete tenant details when tenant leaves"
+            >
+              🗑️ Delete Tenant
+            </button>
+            <button
+              type="button"
+              class="btn-text-link"
+              onclick="openTenantStatementModal(${room.id})"
+              title="View complete bill and payment history for this tenant"
+            >
+              📜 Statement
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -903,7 +1005,48 @@ function viewLeavingTenantStatement() {
 function toggleVacateFormMode() {
   const type = document.getElementById('vacate-action-type').value;
   const fields = document.getElementById('new-tenant-fields');
+  const submitBtn = document.getElementById('vacate-submit-btn');
   fields.style.display = type === 'replace' ? 'flex' : 'none';
+  if (submitBtn) {
+    submitBtn.textContent = type === 'replace' ? 'Save New Tenant' : 'Confirm Delete Details';
+  }
+}
+
+async function confirmDeleteTenantVacant() {
+  if (!vacateTargetRoomId) return;
+  const room = state.rooms.find(r => r.id === Number(vacateTargetRoomId));
+  const tenantName = room ? room.tenant_name : 'this tenant';
+  if (!confirm(`Delete ${tenantName}'s details and mark Room ${room ? room.room_number : ''} as vacant? Past bills and payments will be safely preserved in history.`)) {
+    return;
+  }
+  try {
+    await API.vacateTenant(vacateTargetRoomId, null);
+    showToast(`Tenant details deleted. Room ${room ? room.room_number : ''} marked as vacant.`, 'success');
+    closeModal('vacate-tenant-modal');
+    await loadBillingDashboard();
+    await loadRoomsTable();
+  } catch (err) {
+    showToast('Failed to delete tenant: ' + err.message, 'error');
+  }
+}
+
+async function deleteTenantDirectly() {
+  const id = document.getElementById('room-form-id').value;
+  if (!id) return;
+  const room = state.rooms.find(r => r.id === Number(id));
+  const tenantName = room ? room.tenant_name : 'this tenant';
+  if (!confirm(`Are you sure you want to delete ${tenantName}'s details? Past billing and payment history will remain preserved in history.`)) {
+    return;
+  }
+  try {
+    await API.vacateTenant(id, null);
+    showToast(`Tenant details deleted. Room marked as vacant.`, 'success');
+    closeModal('room-modal');
+    await loadBillingDashboard();
+    await loadRoomsTable();
+  } catch (err) {
+    showToast('Failed to delete tenant: ' + err.message, 'error');
+  }
 }
 
 async function handleVacateTenantSubmit(e) {
@@ -1121,6 +1264,8 @@ function openAddRoomModal() {
   document.getElementById('room-form').reset();
   document.getElementById('room-form-rent').value = state.defaultRent;
   document.getElementById('room-form-reading').value = '0';
+  const delBtn = document.getElementById('btn-modal-delete-tenant');
+  if (delBtn) delBtn.style.display = 'none';
   document.getElementById('room-modal').classList.add('active');
 }
 
@@ -1139,6 +1284,9 @@ async function openEditRoomModal(id) {
     document.getElementById('room-form-rent').value = r.base_rent;
     document.getElementById('room-form-reading').value = r.meter_initial_reading;
     document.getElementById('room-form-status').value = r.status;
+
+    const delBtn = document.getElementById('btn-modal-delete-tenant');
+    if (delBtn) delBtn.style.display = r.status === 'occupied' ? 'inline-flex' : 'none';
 
     document.getElementById('room-modal').classList.add('active');
   } catch (err) {

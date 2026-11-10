@@ -361,9 +361,12 @@
             </select>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" onclick="closeModal('room-modal')">Cancel</button>
-          <button type="submit" class="btn-primary">Save Room Details</button>
+        <div class="modal-footer" style="justify-content: space-between;">
+          <button type="button" id="btn-modal-delete-tenant" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); display: none;" onclick="deleteTenantDirectly()">🗑️ Delete Tenant Details</button>
+          <div style="display: flex; gap: 0.75rem; margin-left: auto;">
+            <button type="button" class="btn-secondary" onclick="closeModal('room-modal')">Cancel</button>
+            <button type="submit" class="btn-primary">Save Room Details</button>
+          </div>
         </div>
       </form>
     </div>
@@ -444,7 +447,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title">🚪 Change or Vacate Tenant</h3>
+          <h3 class="modal-title">🗑️ Delete or Change Tenant Details</h3>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" id="vacate-modal-subtitle">Room details</p>
         </div>
         <button class="modal-close-btn" onclick="closeModal('vacate-tenant-modal')">&times;</button>
@@ -464,8 +467,8 @@
           <div class="input-field-group">
             <label>Action for this room</label>
             <select id="vacate-action-type" class="custom-input" onchange="toggleVacateFormMode()">
-              <option value="replace">Add New Tenant Details</option>
-              <option value="vacant">Mark Room as Vacant (Clear Tenant Details)</option>
+              <option value="replace">Enter New Tenant Details for this Room</option>
+              <option value="vacant">Delete Tenant Details & Mark as Vacant</option>
             </select>
           </div>
 
@@ -492,9 +495,10 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="flex-wrap: wrap; gap: 0.6rem;">
+          <button type="button" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); margin-right: auto;" onclick="confirmDeleteTenantVacant()">🗑️ Delete Details (Mark Vacant)</button>
           <button type="button" class="btn-secondary" onclick="closeModal('vacate-tenant-modal')">Cancel</button>
-          <button type="submit" class="btn-primary">Confirm & Update Room</button>
+          <button type="submit" class="btn-primary" id="vacate-submit-btn">Save New Tenant</button>
         </div>
       </form>
     </div>
