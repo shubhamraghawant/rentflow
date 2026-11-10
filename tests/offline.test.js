@@ -124,18 +124,23 @@ test('OfflineStore generates tenant settlement ledger and handles vacating tenan
   assert.equal(ledger.tenant_name, 'Rahul Sharma');
   assert.ok(ledger.bills.length >= 1);
   assert.ok(ledger.total_billed > 0);
+  assert.equal(ledger.deposit_amount, 15000);
+  // Deposit is 15000, balance due is subtracted from deposit
+  assert.equal(ledger.net_refund, ledger.deposit_amount - ledger.balance_due);
 
   // Vacate and replace with new tenant
   const updatedRoom = global.offlineStore.vacateTenant(room.id, {
     tenant_name: 'Suresh Patil',
     tenant_phone: '+919811223344',
     base_rent: 7000,
+    security_deposit: 20000,
     meter_initial_reading: 1101
   });
 
   assert.equal(updatedRoom.tenant_name, 'Suresh Patil');
   assert.equal(updatedRoom.tenant_phone, '+919811223344');
   assert.equal(updatedRoom.base_rent, 7000);
+  assert.equal(updatedRoom.security_deposit, 20000);
 
   // Historical bills still retain old tenant name
   const pastBills = global.offlineStore.getBills({ room_id: room.id });

@@ -35,19 +35,19 @@
       <nav class="nav-menu">
         <a class="nav-item active" data-view="billing-view">
           <span class="nav-icon">📊</span>
-          <span>Bill Generator</span>
+          <span data-i18n="nav_bill_generator">Bill Generator</span>
         </a>
         <a class="nav-item" data-view="rooms-view">
           <span class="nav-icon">🚪</span>
-          <span>Rooms & Tenants</span>
+          <span data-i18n="nav_rooms_tenants">Rooms & Tenants</span>
         </a>
         <a class="nav-item" data-view="history-view">
           <span class="nav-icon">📜</span>
-          <span>Ledgers & History</span>
+          <span data-i18n="nav_ledgers_history">Ledgers & History</span>
         </a>
         <a class="nav-item" data-view="settings-view">
           <span class="nav-icon">⚙️</span>
-          <span>Settings & Notice</span>
+          <span data-i18n="nav_settings_notice">Settings & Notice</span>
         </a>
       </nav>
     </aside>
@@ -62,8 +62,8 @@
             <div class="factor-card" title="Light bill factor per unit. Saved in backend, editable in runtime!">
               <span style="font-size: 1.3rem;">⚡</span>
               <div class="factor-label">
-                <span class="factor-title">Electricity Rate</span>
-                <span class="factor-sub">Factor / Unit</span>
+                <span class="factor-title" data-i18n="elec_rate_title">Electricity Rate</span>
+                <span class="factor-sub" data-i18n="elec_rate_sub">Factor / Unit</span>
               </div>
               <div class="factor-input-wrap">
                 <span class="factor-input-prefix">₹</span>
@@ -81,8 +81,8 @@
             <div class="factor-card" title="Default base rent. Saved in backend, editable in runtime!">
               <span style="font-size: 1.3rem;">🏠</span>
               <div class="factor-label">
-                <span class="factor-title">Default Base Rent</span>
-                <span class="factor-sub">Per Month</span>
+                <span class="factor-title" data-i18n="default_rent_title">Default Base Rent</span>
+                <span class="factor-sub" data-i18n="default_rent_sub">Per Month</span>
               </div>
               <div class="factor-input-wrap">
                 <span class="factor-input-prefix">₹</span>
@@ -97,17 +97,24 @@
             </div>
 
             <!-- Update Factors Button -->
-            <button class="btn-factor-save" onclick="saveRuntimeFactors()" title="Save updated factors to backend and recalculate">
+            <button class="btn-factor-save" onclick="saveRuntimeFactors()" data-i18n="btn_save_factors" title="Save updated factors to backend and recalculate">
               Save Factors
             </button>
           </div>
 
-          <!-- Billing Month Selector -->
-          <div class="period-picker">
-            <span style="color: var(--text-dim); font-size: 0.85rem; font-weight: 600;">PERIOD:</span>
-            <select id="billing-month-select" class="period-select">
-              <!-- Dynamically populated -->
-            </select>
+          <!-- Controls: Billing Month Selector & Language Toggle -->
+          <div class="header-right-controls">
+            <div class="period-picker">
+              <span style="color: var(--text-dim); font-size: 0.85rem; font-weight: 600;" data-i18n="period_label">PERIOD:</span>
+              <select id="billing-month-select" class="period-select">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+
+            <!-- Language Toggle Button -->
+            <button type="button" class="lang-toggle-btn" id="lang-toggle-btn" onclick="toggleLanguage()" title="Switch Language / भाषा बदला">
+              🌐 <span id="lang-toggle-label">मराठी</span>
+            </button>
           </div>
         </div>
       </header>
@@ -120,32 +127,32 @@
           <!-- Summary Metrics Ribbon -->
           <div class="stats-grid">
             <div class="stat-card">
-              <span class="stat-label">Occupied Rooms</span>
+              <span class="stat-label" data-i18n="stat_occupied_rooms">Occupied Rooms</span>
               <span class="stat-val" id="stat-total-rooms">0</span>
               <span class="stat-subtext" id="stat-billed-rooms">0 / 0 billed this month</span>
             </div>
             <div class="stat-card">
-              <span class="stat-label">Power Consumption</span>
+              <span class="stat-label" data-i18n="stat_power_consumption">Power Consumption</span>
               <span class="stat-val" id="stat-total-units">0 units</span>
-              <span class="stat-subtext">Sum of all tenant meters</span>
+              <span class="stat-subtext" data-i18n="stat_sum_meters">Sum of all tenant meters</span>
             </div>
             <div class="stat-card emerald">
-              <span class="stat-label">Total Expected</span>
+              <span class="stat-label" data-i18n="stat_total_expected">Total Expected</span>
               <span class="stat-val" id="stat-total-collection">₹0</span>
-              <span class="stat-subtext">Rent + Light Bills</span>
+              <span class="stat-subtext" data-i18n="stat_rent_light">Rent + Light Bills</span>
             </div>
             <div class="stat-card amber">
-              <span class="stat-label">Collected / Pending</span>
+              <span class="stat-label" data-i18n="stat_collected_pending">Collected / Pending</span>
               <span class="stat-val" id="stat-pending">₹0</span>
-              <span class="stat-subtext"><span id="stat-collected" style="color: #34d399;">₹0</span> collected</span>
+              <span class="stat-subtext"><span id="stat-collected" style="color: #34d399;">₹0</span> <span data-i18n="stat_collected_label">collected</span></span>
             </div>
           </div>
 
           <!-- Section Action Header -->
           <div class="section-header">
             <div>
-              <h2 class="section-title">⚡ Monthly Light & Rent Billing</h2>
-              <p class="section-desc">Enter meter readings. Units & electricity bill calculate automatically.</p>
+              <h2 class="section-title" data-i18n="section_billing_title">⚡ Monthly Light & Rent Billing</h2>
+              <p class="section-desc" data-i18n="section_billing_desc">Enter meter readings. Units & electricity bill calculate automatically.</p>
             </div>
           </div>
 
@@ -159,24 +166,25 @@
         <section id="rooms-view" class="view-section">
           <div class="section-header">
             <div>
-              <h2 class="section-title">🚪 Rooms & Tenants Directory</h2>
-              <p class="section-desc">Manage room configurations, resident tenant names, and contact phone numbers.</p>
+              <h2 class="section-title" data-i18n="section_rooms_title">🚪 Rooms & Tenants Directory</h2>
+              <p class="section-desc" data-i18n="section_rooms_desc">Manage room configurations, resident tenant names, contact phone numbers, and security deposits.</p>
             </div>
-            <button class="btn-primary" onclick="openAddRoomModal()">+ Add New Room</button>
+            <button class="btn-primary" onclick="openAddRoomModal()" data-i18n="btn_add_room">+ Add New Room</button>
           </div>
 
           <div class="data-table-card">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Room</th>
-                  <th>Floor</th>
-                  <th>Tenant / Resident</th>
-                  <th>Phone / WhatsApp</th>
-                  <th>Base Rent</th>
-                  <th>Initial Meter</th>
-                  <th>Status</th>
-                  <th style="text-align: right;">Actions</th>
+                  <th data-i18n="th_room">Room</th>
+                  <th data-i18n="th_floor">Floor</th>
+                  <th data-i18n="th_tenant">Tenant / Resident</th>
+                  <th data-i18n="th_phone">Phone / WhatsApp</th>
+                  <th data-i18n="th_rent">Base Rent</th>
+                  <th data-i18n="th_deposit">Deposit</th>
+                  <th data-i18n="th_meter">Initial Meter</th>
+                  <th data-i18n="th_status">Status</th>
+                  <th style="text-align: right;" data-i18n="th_actions">Actions</th>
                 </tr>
               </thead>
               <tbody id="rooms-table-body">
@@ -190,25 +198,25 @@
         <section id="history-view" class="view-section">
           <div class="section-header">
             <div>
-              <h2 class="section-title">📜 Billing History & Audit Ledgers</h2>
-              <p class="section-desc">View, filter, and export all generated monthly bills and payment records.</p>
+              <h2 class="section-title" data-i18n="section_history_title">📜 Billing History & Audit Ledgers</h2>
+              <p class="section-desc" data-i18n="section_history_desc">View, filter, and export all generated monthly bills and payment records.</p>
             </div>
-            <button class="btn-secondary" onclick="exportHistoryCsv()">📥 Export to CSV</button>
+            <button class="btn-secondary" onclick="exportHistoryCsv()" data-i18n="btn_export_csv">📥 Export to CSV</button>
           </div>
 
           <div class="data-table-card">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Month</th>
-                  <th>Room</th>
-                  <th>Tenant</th>
-                  <th>Meter Readings</th>
-                  <th>Light Bill</th>
-                  <th>Rent</th>
-                  <th>Total Due</th>
-                  <th>Payment Status</th>
-                  <th>Actions</th>
+                  <th data-i18n="th_hist_month">Month</th>
+                  <th data-i18n="th_hist_room">Room</th>
+                  <th data-i18n="th_hist_tenant">Tenant</th>
+                  <th data-i18n="th_hist_meter">Meter Readings</th>
+                  <th data-i18n="th_hist_light">Light Bill</th>
+                  <th data-i18n="th_hist_rent">Rent</th>
+                  <th data-i18n="th_hist_total">Total Due</th>
+                  <th data-i18n="th_hist_status">Payment Status</th>
+                  <th data-i18n="th_actions">Actions</th>
                 </tr>
               </thead>
               <tbody id="history-table-body">
@@ -344,28 +352,34 @@
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="input-field-group">
-              <label>Base Monthly Rent (₹)</label>
+              <label data-i18n="room_form_rent_label">Base Monthly Rent (₹)</label>
               <input type="number" id="room-form-rent" class="custom-input" placeholder="6000">
             </div>
             <div class="input-field-group">
-              <label>Initial Meter Reading</label>
-              <input type="number" id="room-form-reading" class="custom-input" placeholder="0">
+              <label data-i18n="room_form_deposit_label">Security Deposit (₹)</label>
+              <input type="number" id="room-form-deposit" class="custom-input" placeholder="15000">
             </div>
           </div>
 
-          <div class="input-field-group">
-            <label>Occupancy Status</label>
-            <select id="room-form-status" class="custom-input">
-              <option value="occupied">Occupied</option>
-              <option value="vacant">Vacant</option>
-            </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-field-group">
+              <label data-i18n="room_form_reading_label">Initial Meter Reading</label>
+              <input type="number" id="room-form-reading" class="custom-input" placeholder="0">
+            </div>
+            <div class="input-field-group">
+              <label data-i18n="room_form_status_label">Occupancy Status</label>
+              <select id="room-form-status" class="custom-input">
+                <option value="occupied" data-i18n="status_occupied_opt">Occupied</option>
+                <option value="vacant" data-i18n="status_vacant_opt">Vacant</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="modal-footer" style="justify-content: space-between;">
-          <button type="button" id="btn-modal-delete-tenant" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); display: none;" onclick="deleteTenantDirectly()">🗑️ Delete Tenant Details</button>
+          <button type="button" id="btn-modal-delete-tenant" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); display: none;" onclick="deleteTenantDirectly()" data-i18n="btn_delete_tenant_details">🗑️ Delete Tenant Details</button>
           <div style="display: flex; gap: 0.75rem; margin-left: auto;">
-            <button type="button" class="btn-secondary" onclick="closeModal('room-modal')">Cancel</button>
-            <button type="submit" class="btn-primary">Save Room Details</button>
+            <button type="button" class="btn-secondary" onclick="closeModal('room-modal')" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="btn-primary" data-i18n="btn_save_room">Save Room Details</button>
           </div>
         </div>
       </form>
@@ -380,7 +394,7 @@
         <button class="modal-close-btn" onclick="closeModal('preview-notice-modal')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.85rem; color: var(--text-muted);">
+        <p style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="preview_modal_desc">
           This is the formatted notification message ready for instant dispatch to your tenant:
         </p>
         <div class="notice-preview-box" id="preview-modal-content">
@@ -388,55 +402,65 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeModal('preview-notice-modal')">Close</button>
-        <button type="button" class="btn-whatsapp" id="modal-btn-whatsapp">💬 Send via WhatsApp</button>
+        <button type="button" class="btn-secondary" onclick="closeModal('preview-notice-modal')" data-i18n="btn_close">Close</button>
+        <button type="button" class="btn-whatsapp" id="modal-btn-whatsapp" data-i18n="btn_send_whatsapp">💬 Send via WhatsApp</button>
       </div>
     </div>
   </div>
 
   <!-- 3. Tenant Statement & Settlement Modal -->
   <div class="modal-overlay" id="tenant-statement-modal">
-    <div class="modal-card" style="max-width: 680px;">
+    <div class="modal-card" style="max-width: 720px;">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title" id="statement-modal-title">Tenant Statement & Settlement</h3>
+          <h3 class="modal-title" id="statement-modal-title" data-i18n="statement_modal_title">Tenant Statement & Settlement</h3>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" id="statement-modal-subtitle">Room details</p>
         </div>
         <button class="modal-close-btn" onclick="closeModal('tenant-statement-modal')">&times;</button>
       </div>
       <div class="modal-body" style="gap: 1.25rem;">
-        <!-- Summary Stats Ribbon -->
+        <!-- Summary Stats Ribbon with Security Deposit -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem;">
           <div style="background: var(--pastel-blue-bg); border: 1px solid var(--pastel-blue-border); padding: 0.85rem; border-radius: var(--radius-md);">
-            <div style="font-size: 0.75rem; color: var(--pastel-blue-text); font-weight: 700; text-transform: uppercase;">Total Billed</div>
+            <div style="font-size: 0.75rem; color: var(--pastel-blue-text); font-weight: 700; text-transform: uppercase;" data-i18n="statement_total_billed">Total Billed</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);" id="statement-total-billed">₹0</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" id="statement-billed-breakdown">Rent + Light</div>
           </div>
           <div style="background: var(--pastel-green-bg); border: 1px solid var(--pastel-green-border); padding: 0.85rem; border-radius: var(--radius-md);">
-            <div style="font-size: 0.75rem; color: var(--pastel-green-text); font-weight: 700; text-transform: uppercase;">Total Paid</div>
+            <div style="font-size: 0.75rem; color: var(--pastel-green-text); font-weight: 700; text-transform: uppercase;" data-i18n="statement_total_paid">Total Paid</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-green-text);" id="statement-total-paid">₹0</div>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" id="statement-paid-breakdown">Received</div>
           </div>
           <div style="background: var(--pastel-amber-bg); border: 1px solid var(--pastel-amber-border); padding: 0.85rem; border-radius: var(--radius-md);">
-            <div style="font-size: 0.75rem; color: var(--pastel-amber-text); font-weight: 700; text-transform: uppercase;">Balance Due</div>
+            <div style="font-size: 0.75rem; color: var(--pastel-amber-text); font-weight: 700; text-transform: uppercase;" data-i18n="statement_balance_due">Balance Due</div>
             <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-amber-text);" id="statement-balance-due">₹0</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">Settlement Amount</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" data-i18n="statement_pending_dues">Pending Dues</div>
+          </div>
+          <div style="background: var(--pastel-purple-bg); border: 1px solid var(--pastel-purple-border); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--pastel-purple-text); font-weight: 700; text-transform: uppercase;" data-i18n="statement_deposit_held">Deposit Held</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-purple-text);" id="statement-deposit-held">₹0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" data-i18n="statement_security_deposit">Security Deposit</div>
+          </div>
+          <div id="statement-net-card" style="background: var(--pastel-green-bg); border: 1px solid var(--pastel-green-border); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--pastel-green-text); font-weight: 700; text-transform: uppercase;" id="statement-net-label" data-i18n="statement_net_settlement">Net Settlement</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-green-text);" id="statement-net-settlement">₹0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" id="statement-net-subtext">Refund to Tenant</div>
           </div>
         </div>
 
         <!-- Month by Month Breakdown List -->
         <div>
-          <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 0.6rem; color: var(--text-main);">Monthly Records & Payment Dates</h4>
+          <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 0.6rem; color: var(--text-main);" data-i18n="statement_monthly_records">Monthly Records & Payment Dates</h4>
           <div id="statement-months-list" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 340px; overflow-y: auto; padding-right: 4px;">
             <!-- Rendered dynamically -->
           </div>
         </div>
       </div>
       <div class="modal-footer" style="flex-wrap: wrap; justify-content: space-between;">
-        <button type="button" class="btn-secondary" onclick="exportTenantCsv()">📥 Download Excel (CSV)</button>
+        <button type="button" class="btn-secondary" onclick="exportTenantCsv()" data-i18n="btn_export_tenant_csv">📥 Download Excel (CSV)</button>
         <div style="display: flex; gap: 0.6rem;">
-          <button type="button" class="btn-secondary" onclick="closeModal('tenant-statement-modal')">Close</button>
-          <button type="button" class="btn-whatsapp" id="statement-btn-whatsapp" onclick="shareStatementWhatsApp()">💬 WhatsApp Statement</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('tenant-statement-modal')" data-i18n="btn_close">Close</button>
+          <button type="button" class="btn-whatsapp" id="statement-btn-whatsapp" onclick="shareStatementWhatsApp()" data-i18n="btn_whatsapp_statement">💬 WhatsApp Statement</button>
         </div>
       </div>
     </div>
@@ -447,7 +471,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3 class="modal-title">🗑️ Delete or Change Tenant Details</h3>
+          <h3 class="modal-title" data-i18n="vacate_modal_title">🗑️ Delete or Change Tenant Details</h3>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" id="vacate-modal-subtitle">Room details</p>
         </div>
         <button class="modal-close-btn" onclick="closeModal('vacate-tenant-modal')">&times;</button>
@@ -458,47 +482,53 @@
           <!-- Settlement prompt banner -->
           <div style="background: var(--pastel-blue-bg); border: 1px solid var(--pastel-blue-border); padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
             <div>
-              <div style="font-weight: 700; color: var(--pastel-blue-text); font-size: 0.92rem;">Leaving Tenant Settle Records</div>
-              <div style="font-size: 0.82rem; color: var(--text-muted);">Check all paid and pending rent/light bill records before departure.</div>
+              <div style="font-weight: 700; color: var(--pastel-blue-text); font-size: 0.92rem;" data-i18n="vacate_settle_title">Leaving Tenant Settle Records</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);" data-i18n="vacate_settle_desc">Check all paid and pending rent/light bill records before departure.</div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--pastel-blue-text); margin-top: 0.25rem;" id="vacate-deposit-info">Deposit Held: ₹0</div>
             </div>
-            <button type="button" class="btn-secondary" style="font-size: 0.82rem; padding: 0.4rem 0.8rem;" onclick="viewLeavingTenantStatement()">📋 View Statement</button>
+            <button type="button" class="btn-secondary" style="font-size: 0.82rem; padding: 0.4rem 0.8rem;" onclick="viewLeavingTenantStatement()" data-i18n="btn_view_statement">📋 View Statement</button>
           </div>
 
           <div class="input-field-group">
-            <label>Action for this room</label>
+            <label data-i18n="vacate_action_label">Action for this room</label>
             <select id="vacate-action-type" class="custom-input" onchange="toggleVacateFormMode()">
-              <option value="replace">Enter New Tenant Details for this Room</option>
-              <option value="vacant">Delete Tenant Details & Mark as Vacant</option>
+              <option value="replace" data-i18n="vacate_opt_replace">Enter New Tenant Details for this Room</option>
+              <option value="vacant" data-i18n="vacate_opt_vacant">Delete Tenant Details & Mark as Vacant</option>
             </select>
           </div>
 
           <div id="new-tenant-fields" style="display: flex; flex-direction: column; gap: 1rem;">
             <div class="input-field-group">
-              <label>New Tenant Full Name *</label>
+              <label data-i18n="vacate_new_name_label">New Tenant Full Name *</label>
               <input type="text" id="vacate-new-name" class="custom-input" placeholder="e.g. Suresh Patil">
             </div>
 
             <div class="input-field-group">
-              <label>New Tenant WhatsApp / Phone Number *</label>
+              <label data-i18n="vacate_new_phone_label">New Tenant WhatsApp / Phone Number *</label>
               <input type="tel" id="vacate-new-phone" class="custom-input" placeholder="e.g. +91 9876543210">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div class="input-field-group">
-                <label>New Base Rent (₹)</label>
+                <label data-i18n="vacate_new_rent_label">New Base Rent (₹)</label>
                 <input type="number" id="vacate-new-rent" class="custom-input" placeholder="6000">
               </div>
               <div class="input-field-group">
-                <label>Initial Meter Reading</label>
-                <input type="number" id="vacate-new-reading" class="custom-input" placeholder="Current meter units">
+                <label data-i18n="vacate_new_deposit_label">New Security Deposit (₹)</label>
+                <input type="number" id="vacate-new-deposit" class="custom-input" placeholder="15000">
               </div>
+            </div>
+
+            <div class="input-field-group">
+              <label data-i18n="vacate_new_reading_label">Initial Meter Reading</label>
+              <input type="number" id="vacate-new-reading" class="custom-input" placeholder="Current meter units">
             </div>
           </div>
         </div>
         <div class="modal-footer" style="flex-wrap: wrap; gap: 0.6rem;">
-          <button type="button" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); margin-right: auto;" onclick="confirmDeleteTenantVacant()">🗑️ Delete Details (Mark Vacant)</button>
-          <button type="button" class="btn-secondary" onclick="closeModal('vacate-tenant-modal')">Cancel</button>
-          <button type="submit" class="btn-primary" id="vacate-submit-btn">Save New Tenant</button>
+          <button type="button" class="btn-secondary" style="color: var(--pastel-rose-text); border-color: var(--pastel-rose-border); margin-right: auto;" onclick="confirmDeleteTenantVacant()" data-i18n="btn_delete_details_vacant">🗑️ Delete Details (Mark Vacant)</button>
+          <button type="button" class="btn-secondary" onclick="closeModal('vacate-tenant-modal')" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="vacate-submit-btn" data-i18n="btn_save_new_tenant">Save New Tenant</button>
         </div>
       </form>
     </div>
