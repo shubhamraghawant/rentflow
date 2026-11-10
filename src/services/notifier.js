@@ -28,6 +28,21 @@ function formatCurrency(amount, symbol = '₹') {
   return `${symbol}${num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
+function formatBillingMonth(monthStr) {
+  if (!monthStr) return '';
+  if (monthStr.includes(' ')) return monthStr;
+  const parts = monthStr.split('-');
+  if (parts.length === 2) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    if (!isNaN(year) && !isNaN(month)) {
+      const d = new Date(year, month - 1, 1);
+      return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    }
+  }
+  return monthStr;
+}
+
 function buildNotificationMessage(bill, room, settings) {
   const currency = settings.currency_symbol || '₹';
   let template = settings.message_template || '';
@@ -37,6 +52,7 @@ function buildNotificationMessage(bill, room, settings) {
   const elecAmount = Number(bill.electricity_amount).toLocaleString('en-IN');
   const rentAmount = Number(bill.rent_amount).toLocaleString('en-IN');
   const totalAmount = Number(bill.total_amount).toLocaleString('en-IN');
+  const formattedMonth = formatBillingMonth(bill.billing_month);
 
   let otherChargesLine = '';
   if (Number(bill.other_charges) > 0) {
@@ -47,18 +63,22 @@ function buildNotificationMessage(bill, room, settings) {
     otherChargesLine += `\n➖ *Discount:* ${currency}${Number(bill.discount).toFixed(2)}`;
   }
 
+  const upiId = settings.upi_id || 'vanitaraghawant@oksbi';
+  const landlordPhone = settings.landlord_phone || '+919146225975';
+  const landlordName = settings.landlord_name || 'Malganga Niwas';
+
   let paymentInfo = '';
-  if (settings.upi_id) {
-    paymentInfo = `💳 *Pay via UPI:* \`${settings.upi_id}\`\n`;
+  if (upiId) {
+    paymentInfo = `💳 *Pay via UPI:* ${upiId}\n`;
   }
-  if (settings.landlord_phone) {
-    paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${settings.landlord_phone}\n`;
+  if (landlordPhone) {
+    paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${landlordPhone}\n`;
   }
 
   const replacements = {
     '{tenant_name}': room.tenant_name || 'Tenant',
     '{room_number}': room.room_number,
-    '{billing_month}': bill.billing_month,
+    '{billing_month}': formattedMonth,
     '{previous_reading}': bill.previous_reading,
     '{current_reading}': bill.current_reading,
     '{units_consumed}': units,
@@ -69,8 +89,10 @@ function buildNotificationMessage(bill, room, settings) {
     '{total_amount}': totalAmount,
     '{due_date}': bill.due_date || 'Within 5 days',
     '{currency}': currency,
-    '{payment_info}': paymentInfo,
-    '{landlord_name}': settings.landlord_name || 'Landlord'
+    '{payment_info}': paymentInfo.trim(),
+    '{upi_id}': upiId,
+    '{landlord_phone}': landlordPhone,
+    '{landlord_name}': landlordName
   };
 
   let message = template;

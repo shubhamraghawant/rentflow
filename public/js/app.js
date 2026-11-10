@@ -71,9 +71,16 @@ function importDataBackup(event) {
   reader.readAsText(file);
 }
 
+// Default billing month is one month prior to current calendar month (e.g. October when sending in November)
+function getDefaultBillingMonth() {
+  const now = new Date();
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return prev.toISOString().slice(0, 7);
+}
+
 // App State
 const state = {
-  currentMonth: new Date().toISOString().slice(0, 7), // "2026-11"
+  currentMonth: getDefaultBillingMonth(),
   settings: {},
   electricityRate: 10,
   defaultRent: 6000,

@@ -82,9 +82,9 @@ function initDb() {
   const defaultSettings = [
     { key: 'electricity_rate', value: process.env.DEFAULT_ELECTRICITY_RATE || '10' },
     { key: 'default_rent', value: process.env.DEFAULT_RENT || '6000' },
-    { key: 'landlord_name', value: process.env.LANDLORD_NAME || 'Shubham Properties' },
-    { key: 'landlord_phone', value: process.env.LANDLORD_PHONE || '' },
-    { key: 'upi_id', value: process.env.UPI_ID || '' },
+    { key: 'landlord_name', value: process.env.LANDLORD_NAME || 'Malganga Niwas' },
+    { key: 'landlord_phone', value: process.env.LANDLORD_PHONE || '+919146225975' },
+    { key: 'upi_id', value: process.env.UPI_ID || 'vanitaraghawant@oksbi' },
     { key: 'due_day_of_month', value: '5' },
     { key: 'currency_symbol', value: '₹' },
     { key: 'currency_code', value: 'INR' },
@@ -101,16 +101,16 @@ Here is your bill summary for *Room {room_number}* ({billing_month}):
 • Previous Reading: {previous_reading} units
 • Current Reading: {current_reading} units
 • Units Consumed: {units_consumed} units
-• Rate: {currency}{electricity_rate}/unit
 • *Light Bill Amount:* {currency}{electricity_amount}
 
 🏠 *Room Rent:* {currency}{rent_amount}
 {other_charges_line}
 ━━━━━━━━━━━━━━━━━━━━
 💰 *TOTAL AMOUNT DUE:* *{currency}{total_amount}*
-📅 *Due Date:* {due_date}
 
-{payment_info}
+💳 *Pay via UPI:* {upi_id}
+📞 *GPay / PhonePe / Paytm:* {landlord_phone}
+
 Please share payment confirmation screenshot once done.
 Thank you!
 — *{landlord_name}*`
@@ -119,11 +119,19 @@ Thank you!
 
   const checkStmt = db.prepare('SELECT value FROM settings WHERE key = ?');
   const insertStmt = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)');
+  const updateStmt = db.prepare('UPDATE settings SET value = ? WHERE key = ?');
 
   for (const s of defaultSettings) {
     const existing = checkStmt.get(s.key);
     if (!existing) {
       insertStmt.run(s.key, s.value);
+    } else if (
+      (s.key === 'landlord_name' && existing.value === 'Shubham Properties') ||
+      (s.key === 'upi_id' && existing.value === 'shubham@upi') ||
+      (s.key === 'landlord_phone' && existing.value === '+919876543210') ||
+      (s.key === 'message_template' && existing.value.includes('{electricity_rate}/unit'))
+    ) {
+      updateStmt.run(s.value, s.key);
     }
   }
 
