@@ -14,9 +14,9 @@ const STORAGE_KEYS = {
 const DEFAULT_SETTINGS = {
   electricity_rate: '10',
   default_rent: '6000',
-  landlord_name: 'Shubham Properties',
-  landlord_phone: '+919876543210',
-  upi_id: 'shubham@upi',
+  landlord_name: 'Malganga Niwas',
+  landlord_phone: '+919146225975',
+  upi_id: 'vanitaraghawant@oksbi',
   due_day_of_month: '5',
   currency_symbol: '₹',
   message_template: `📢 *RENT & ELECTRICITY BILL NOTICE*
@@ -28,16 +28,16 @@ Here is your bill summary for *Room {room_number}* ({billing_month}):
 • Previous Reading: {previous_reading} units
 • Current Reading: {current_reading} units
 • Units Consumed: {units_consumed} units
-• Rate: {currency}{electricity_rate}/unit
 • *Light Bill Amount:* {currency}{electricity_amount}
 
 🏠 *Room Rent:* {currency}{rent_amount}
 {other_charges_line}
 ━━━━━━━━━━━━━━━━━━━━
 💰 *TOTAL AMOUNT DUE:* *{currency}{total_amount}*
-📅 *Due Date:* {due_date}
 
-{payment_info}
+💳 *Pay via UPI:* {upi_id}
+📞 *GPay / PhonePe / Paytm:* {landlord_phone}
+
 Please share payment confirmation screenshot once done.
 Thank you!
 — *{landlord_name}*`
@@ -56,12 +56,19 @@ class OfflineStore {
   }
 
   init() {
-    // Initialize default settings if not present
-    if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
+    // Initialize or migrate settings
+    const existingSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    if (!existingSettings) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
     } else {
-      // Merge in any missing defaults
       const current = this.getSettings();
+      // If still using previous sample landlord name or UPI ID, update to Malganga Niwas & vanitaraghawant@oksbi
+      if (current.landlord_name === 'Shubham Properties' || current.upi_id === 'shubham@upi' || current.message_template.includes('{electricity_rate}/unit')) {
+        current.landlord_name = 'Malganga Niwas';
+        current.upi_id = 'vanitaraghawant@oksbi';
+        current.landlord_phone = '+919146225975';
+        current.message_template = DEFAULT_SETTINGS.message_template;
+      }
       const merged = { ...DEFAULT_SETTINGS, ...current };
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
     }
@@ -394,6 +401,22 @@ class OfflineStore {
     };
   }
 
+  // Helper to format "2026-10" into "October 2026"
+  formatBillingMonth(monthStr) {
+    if (!monthStr) return '';
+    if (monthStr.includes(' ')) return monthStr;
+    const parts = monthStr.split('-');
+    if (parts.length === 2) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      if (!isNaN(year) && !isNaN(month)) {
+        const d = new Date(year, month - 1, 1);
+        return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      }
+    }
+    return monthStr;
+  }
+
   // --- Message Builder & URLs ---
   buildNotificationMessage(bill, room, settings) {
     const currency = settings.currency_symbol || '₹';
@@ -404,6 +427,7 @@ class OfflineStore {
     const elecAmount = Number(bill.electricity_amount).toLocaleString('en-IN');
     const rentAmount = Number(bill.rent_amount).toLocaleString('en-IN');
     const totalAmount = Number(bill.total_amount).toLocaleString('en-IN');
+    const formattedMonth = this.formatBillingMonth(bill.billing_month);
 
     let otherChargesLine = '';
     if (Number(bill.other_charges) > 0) {
@@ -411,17 +435,21 @@ class OfflineStore {
     }
 
     let paymentInfo = '';
-    if (settings.upi_id) {
-      paymentInfo = `💳 *Pay via UPI:* \`${settings.upi_id}\`\n`;
+    const upiId = settings.upi_id || 'vanitaraghawant@oksbi';
+    const landlordPhone = settings.landlord_phone || '+919146225975';
+    const landlordName = settings.landlord_name || 'Malganga Niwas';
+
+    if (upiId) {
+      paymentInfo = `💳 *Pay via UPI:* ${upiId}\n`;
     }
-    if (settings.landlord_phone) {
-      paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${settings.landlord_phone}\n`;
+    if (landlordPhone) {
+      paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${landlordPhone}\n`;
     }
 
     const replacements = {
       '{tenant_name}': room.tenant_name || 'Tenant',
       '{room_number}': room.room_number || '',
-      '{billing_month}': bill.billing_month || '',
+      '{billing_month}': formattedMonth,
       '{previous_reading}': bill.previous_reading,
       '{current_reading}': bill.current_reading,
       '{units_consumed}': units,
@@ -432,8 +460,10 @@ class OfflineStore {
       '{total_amount}': totalAmount,
       '{due_date}': bill.due_date || 'Within 5 days',
       '{currency}': currency,
-      '{payment_info}': paymentInfo,
-      '{landlord_name}': settings.landlord_name || 'Landlord'
+      '{payment_info}': paymentInfo.trim(),
+      '{upi_id}': upiId,
+      '{landlord_phone}': landlordPhone,
+      '{landlord_name}': landlordName
     };
 
     let message = template;
