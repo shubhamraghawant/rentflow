@@ -162,18 +162,30 @@ Thank you!
     }
   }
 
+  // Migrate legacy room numbers if present
+  try {
+    db.exec(`
+      UPDATE rooms SET room_number = 'Room A', floor = 'Double Room' WHERE room_number = '101';
+      UPDATE rooms SET room_number = 'Room B', floor = 'Double Room' WHERE room_number = '102';
+      UPDATE rooms SET room_number = '1BHK', floor = '1BHK Flat' WHERE room_number = '201';
+      UPDATE rooms SET room_number = 'Single Room', floor = 'Single Room' WHERE room_number = '202';
+    `);
+  } catch (e) {
+    // Ignore migration errors if already done
+  }
+
   // Seed sample rooms if rooms table is empty
   const roomCount = db.prepare('SELECT COUNT(*) as count FROM rooms').get().count;
   if (roomCount === 0) {
     const insertRoom = db.prepare(`
-      INSERT INTO rooms (room_number, floor, tenant_name, tenant_phone, base_rent, meter_initial_reading, move_in_date, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO rooms (room_number, floor, tenant_name, tenant_phone, base_rent, security_deposit, meter_initial_reading, move_in_date, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertRoom.run('101', 'Ground Floor', 'Rahul Sharma', '+919876543210', 6500, 1120, '2026-01-01', 'occupied');
-    insertRoom.run('102', 'Ground Floor', 'Amit Patel', '+919812345678', 6000, 980, '2026-02-15', 'occupied');
-    insertRoom.run('201', '1st Floor', 'Priya Deshmukh', '+919923456789', 7000, 1450, '2026-03-01', 'occupied');
-    insertRoom.run('202', '1st Floor', 'Vikas Verma', '+919765432109', 6000, 830, '2026-04-10', 'occupied');
+    insertRoom.run('Room A', 'Double Room', 'Rahul Sharma', '+919876543210', 7500, 15000, 1120, '2026-01-01', 'occupied');
+    insertRoom.run('Room B', 'Double Room', 'Amit Patel', '+919812345678', 7500, 15000, 980, '2026-02-15', 'occupied');
+    insertRoom.run('1BHK', '1BHK Flat', 'Priya Deshmukh', '+919923456789', 9000, 20000, 1450, '2026-03-01', 'occupied');
+    insertRoom.run('Single Room', 'Single Room', 'Vikas Verma', '+919765432109', 5000, 10000, 830, '2026-04-10', 'occupied');
     console.log('Seeded sample rooms for initial setup.');
   }
 }

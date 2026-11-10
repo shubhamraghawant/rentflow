@@ -601,18 +601,20 @@ body {
 }
 
 .room-avatar {
-  width: 50px;
+  min-width: 52px;
   height: 50px;
+  padding: 0 0.6rem;
   border-radius: var(--radius-md);
   background: var(--pastel-blue-bg);
   border: 1.5px solid var(--pastel-blue-border);
   color: var(--pastel-blue-text);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .tenant-meta h4 {

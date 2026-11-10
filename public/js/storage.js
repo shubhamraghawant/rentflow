@@ -44,10 +44,10 @@ Thank you!
 };
 
 const DEFAULT_ROOMS = [
-  { id: 1, room_number: '101', floor: 'Ground Floor', tenant_name: 'Rahul Sharma', tenant_phone: '+919876543210', base_rent: 6500, security_deposit: 15000, meter_initial_reading: 1120, move_in_date: '2026-01-01', status: 'occupied' },
-  { id: 2, room_number: '102', floor: 'Ground Floor', tenant_name: 'Amit Patel', tenant_phone: '+919812345678', base_rent: 6000, security_deposit: 12000, meter_initial_reading: 980, move_in_date: '2026-02-15', status: 'occupied' },
-  { id: 3, room_number: '201', floor: '1st Floor', tenant_name: 'Priya Deshmukh', tenant_phone: '+919923456789', base_rent: 7000, security_deposit: 15000, meter_initial_reading: 1450, move_in_date: '2026-03-01', status: 'occupied' },
-  { id: 4, room_number: '202', floor: '1st Floor', tenant_name: 'Vikas Verma', tenant_phone: '+919765432109', base_rent: 6000, security_deposit: 12000, meter_initial_reading: 830, move_in_date: '2026-04-10', status: 'occupied' }
+  { id: 1, room_number: 'Room A', floor: 'Double Room', tenant_name: 'Rahul Sharma', tenant_phone: '+919876543210', base_rent: 7500, security_deposit: 15000, meter_initial_reading: 1120, move_in_date: '2026-01-01', status: 'occupied' },
+  { id: 2, room_number: 'Room B', floor: 'Double Room', tenant_name: 'Amit Patel', tenant_phone: '+919812345678', base_rent: 7500, security_deposit: 15000, meter_initial_reading: 980, move_in_date: '2026-02-15', status: 'occupied' },
+  { id: 3, room_number: '1BHK', floor: '1BHK Flat', tenant_name: 'Priya Deshmukh', tenant_phone: '+919923456789', base_rent: 9000, security_deposit: 20000, meter_initial_reading: 1450, move_in_date: '2026-03-01', status: 'occupied' },
+  { id: 4, room_number: 'Single Room', floor: 'Single Room', tenant_name: 'Vikas Verma', tenant_phone: '+919765432109', base_rent: 5000, security_deposit: 10000, meter_initial_reading: 830, move_in_date: '2026-04-10', status: 'occupied' }
 ];
 
 class OfflineStore {
@@ -73,9 +73,49 @@ class OfflineStore {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
     }
 
-    // Initialize sample rooms if not present
-    if (!localStorage.getItem(STORAGE_KEYS.ROOMS)) {
+    // Initialize or migrate rooms to the 4 property rooms: Room A, Room B, 1BHK, Single Room
+    const existingRoomsJson = localStorage.getItem(STORAGE_KEYS.ROOMS);
+    if (!existingRoomsJson) {
       localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(DEFAULT_ROOMS));
+    } else {
+      try {
+        let rooms = JSON.parse(existingRoomsJson) || [];
+        const roomMapping = {
+          '101': { room_number: 'Room A', floor: 'Double Room' },
+          '102': { room_number: 'Room B', floor: 'Double Room' },
+          '201': { room_number: '1BHK', floor: '1BHK Flat' },
+          '202': { room_number: 'Single Room', floor: 'Single Room' }
+        };
+
+        let hasLegacy = false;
+        rooms = rooms.map(r => {
+          if (roomMapping[r.room_number]) {
+            hasLegacy = true;
+            return {
+              ...r,
+              room_number: roomMapping[r.room_number].room_number,
+              floor: roomMapping[r.room_number].floor
+            };
+          }
+          return r;
+        });
+
+        if (hasLegacy) {
+          localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(rooms));
+
+          // Also update past bills to maintain continuous ledger history
+          let bills = JSON.parse(localStorage.getItem(STORAGE_KEYS.BILLS) || '[]');
+          bills = bills.map(b => {
+            if (b.room_number && roomMapping[b.room_number]) {
+              return { ...b, room_number: roomMapping[b.room_number].room_number };
+            }
+            return b;
+          });
+          localStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(bills));
+        }
+      } catch {
+        localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(DEFAULT_ROOMS));
+      }
     }
 
     // Initialize bills array if not present
@@ -680,9 +720,14 @@ class OfflineStore {
       paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${landlordPhone}\n`;
     }
 
+    const rawRoom = (room.room_number || '').trim();
+    const formattedRoom = rawRoom.toLowerCase().startsWith('room')
+      ? rawRoom
+      : (rawRoom.toLowerCase().includes('bhk') || rawRoom.toLowerCase().includes('single') ? rawRoom : `Room ${rawRoom}`);
+
     const replacements = {
       '{tenant_name}': room.tenant_name || 'Tenant',
-      '{room_number}': room.room_number || '',
+      '{room_number}': rawRoom,
       '{billing_month}': formattedMonth,
       '{previous_reading}': bill.previous_reading,
       '{current_reading}': bill.current_reading,
@@ -701,6 +746,9 @@ class OfflineStore {
     };
 
     let message = template;
+    // Replace "*Room {room_number}*" with formattedRoom to avoid duplicate "Room Room A"
+    message = message.split('*Room {room_number}*').join(`*${formattedRoom}*`);
+    message = message.split('Room {room_number}').join(formattedRoom);
     for (const [key, val] of Object.entries(replacements)) {
       message = message.split(key).join(val);
     }

@@ -33,8 +33,11 @@ test('OfflineStore initializes default rooms and settings in localStorage', () =
   assert.equal(settings.default_rent, '6000');
 
   const rooms = global.offlineStore.getRooms();
-  assert.ok(rooms.length >= 4);
-  assert.equal(rooms[0].room_number, '101');
+  assert.equal(rooms.length, 4);
+  assert.equal(rooms[0].room_number, 'Room A');
+  assert.equal(rooms[1].room_number, 'Room B');
+  assert.equal(rooms[2].room_number, '1BHK');
+  assert.equal(rooms[3].room_number, 'Single Room');
 });
 
 test('OfflineStore updates runtime electricity rate and base rent factors', () => {
@@ -71,7 +74,7 @@ test('OfflineStore automatically uses last bill current reading as next month pr
 test('OfflineStore export and import backup operates properly', () => {
   const jsonStr = global.offlineStore.exportBackupJson();
   assert.ok(jsonStr.includes('electricity_rate'));
-  assert.ok(jsonStr.includes('"room_number": "101"'));
+  assert.ok(jsonStr.includes('"room_number": "Room A"'));
 
   // Clear and restore
   global.localStorage.clear();

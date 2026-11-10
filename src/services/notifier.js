@@ -75,9 +75,14 @@ function buildNotificationMessage(bill, room, settings) {
     paymentInfo += `📞 *GPay / PhonePe / Paytm:* ${landlordPhone}\n`;
   }
 
+  const rawRoom = (room.room_number || '').trim();
+  const formattedRoom = rawRoom.toLowerCase().startsWith('room')
+    ? rawRoom
+    : (rawRoom.toLowerCase().includes('bhk') || rawRoom.toLowerCase().includes('single') ? rawRoom : `Room ${rawRoom}`);
+
   const replacements = {
     '{tenant_name}': room.tenant_name || 'Tenant',
-    '{room_number}': room.room_number,
+    '{room_number}': rawRoom,
     '{billing_month}': formattedMonth,
     '{previous_reading}': bill.previous_reading,
     '{current_reading}': bill.current_reading,
@@ -96,6 +101,8 @@ function buildNotificationMessage(bill, room, settings) {
   };
 
   let message = template;
+  message = message.split('*Room {room_number}*').join(`*${formattedRoom}*`);
+  message = message.split('Room {room_number}').join(formattedRoom);
   for (const [key, val] of Object.entries(replacements)) {
     message = message.split(key).join(val);
   }
