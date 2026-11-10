@@ -44,10 +44,10 @@ Thank you!
 };
 
 const DEFAULT_ROOMS = [
-  { id: 1, room_number: '101', floor: 'Ground Floor', tenant_name: 'Rahul Sharma', tenant_phone: '+919876543210', base_rent: 6500, meter_initial_reading: 1120, move_in_date: '2026-01-01', status: 'occupied' },
-  { id: 2, room_number: '102', floor: 'Ground Floor', tenant_name: 'Amit Patel', tenant_phone: '+919812345678', base_rent: 6000, meter_initial_reading: 980, move_in_date: '2026-02-15', status: 'occupied' },
-  { id: 3, room_number: '201', floor: '1st Floor', tenant_name: 'Priya Deshmukh', tenant_phone: '+919923456789', base_rent: 7000, meter_initial_reading: 1450, move_in_date: '2026-03-01', status: 'occupied' },
-  { id: 4, room_number: '202', floor: '1st Floor', tenant_name: 'Vikas Verma', tenant_phone: '+919765432109', base_rent: 6000, meter_initial_reading: 830, move_in_date: '2026-04-10', status: 'occupied' }
+  { id: 1, room_number: '101', floor: 'Ground Floor', tenant_name: 'Rahul Sharma', tenant_phone: '+919876543210', base_rent: 6500, security_deposit: 15000, meter_initial_reading: 1120, move_in_date: '2026-01-01', status: 'occupied' },
+  { id: 2, room_number: '102', floor: 'Ground Floor', tenant_name: 'Amit Patel', tenant_phone: '+919812345678', base_rent: 6000, security_deposit: 12000, meter_initial_reading: 980, move_in_date: '2026-02-15', status: 'occupied' },
+  { id: 3, room_number: '201', floor: '1st Floor', tenant_name: 'Priya Deshmukh', tenant_phone: '+919923456789', base_rent: 7000, security_deposit: 15000, meter_initial_reading: 1450, move_in_date: '2026-03-01', status: 'occupied' },
+  { id: 4, room_number: '202', floor: '1st Floor', tenant_name: 'Vikas Verma', tenant_phone: '+919765432109', base_rent: 6000, security_deposit: 12000, meter_initial_reading: 830, move_in_date: '2026-04-10', status: 'occupied' }
 ];
 
 class OfflineStore {
@@ -528,6 +528,9 @@ class OfflineStore {
     }
 
     const balanceDue = totalBilled - totalPaid;
+    const deposit = Number(room?.security_deposit || 0);
+    const netRefund = deposit > balanceDue ? (deposit - balanceDue) : 0;
+    const netDue = balanceDue > deposit ? (balanceDue - deposit) : 0;
 
     return {
       room,
@@ -540,7 +543,10 @@ class OfflineStore {
       total_rent_paid: Math.round(totalRentPaid),
       total_light_billed: Math.round(totalLightBilled),
       total_light_paid: Math.round(totalLightPaid),
-      balance_due: Math.round(balanceDue)
+      balance_due: Math.round(balanceDue),
+      deposit_amount: Math.round(deposit),
+      net_refund: Math.round(netRefund),
+      net_due: Math.round(netDue)
     };
   }
 
@@ -557,6 +563,9 @@ class OfflineStore {
         tenant_name: newTenantData.tenant_name.trim(),
         tenant_phone: (newTenantData.tenant_phone || '').trim(),
         base_rent: newTenantData.base_rent ? Number(newTenantData.base_rent) : room.base_rent,
+        security_deposit: newTenantData.security_deposit !== undefined && newTenantData.security_deposit !== ''
+          ? Number(newTenantData.security_deposit)
+          : (room.security_deposit || 0),
         meter_initial_reading: newTenantData.meter_initial_reading !== undefined && newTenantData.meter_initial_reading !== ''
           ? Number(newTenantData.meter_initial_reading)
           : room.meter_initial_reading,
@@ -569,6 +578,7 @@ class OfflineStore {
         ...room,
         tenant_name: 'Vacant',
         tenant_phone: '',
+        security_deposit: 0,
         status: 'vacant',
         updated_at: new Date().toISOString()
       };

@@ -91,6 +91,287 @@ const state = {
   activeView: 'billing-view'
 };
 
+// Bilingual Marathi & English Translations
+const TRANSLATIONS = {
+  en: {
+    nav_bill_generator: 'Bill Generator',
+    nav_rooms_tenants: 'Rooms & Tenants',
+    nav_ledgers_history: 'Ledgers & History',
+    nav_settings_notice: 'Settings & Notice',
+    elec_rate_title: 'Electricity Rate',
+    elec_rate_sub: 'Factor / Unit',
+    default_rent_title: 'Default Base Rent',
+    default_rent_sub: 'Per Month',
+    btn_save_factors: 'Save Factors',
+    period_label: 'PERIOD:',
+    stat_occupied_rooms: 'Occupied Rooms',
+    stat_power_consumption: 'Power Consumption',
+    stat_total_expected: 'Total Expected',
+    stat_collected_pending: 'Collected / Pending',
+    stat_rent_light: 'Rent + Light Bills',
+    stat_sum_meters: 'Sum of all tenant meters',
+    stat_collected_label: 'collected',
+    section_billing_title: '⚡ Monthly Light & Rent Billing',
+    section_billing_desc: 'Enter meter readings. Units & electricity bill calculate automatically.',
+    section_rooms_title: '🚪 Rooms & Tenants Directory',
+    section_rooms_desc: 'Manage room configurations, resident tenant names, contact phone numbers, and security deposits.',
+    btn_add_room: '+ Add New Room',
+    section_history_title: '📜 Billing History & Audit Ledgers',
+    section_history_desc: 'View, filter, and export all generated monthly bills and payment records.',
+    btn_export_csv: '📥 Export to CSV',
+    section_settings_title: '⚙️ App Settings & Notification Template',
+    section_settings_desc: 'Configure your property name, UPI ID for receiving payments, and customize the message sent to tenants.',
+    th_room: 'Room',
+    th_floor: 'Floor',
+    th_tenant: 'Tenant / Resident',
+    th_phone: 'Phone / WhatsApp',
+    th_rent: 'Base Rent',
+    th_deposit: 'Deposit',
+    th_meter: 'Initial Meter',
+    th_status: 'Status',
+    th_actions: 'Actions',
+    th_hist_month: 'Month',
+    th_hist_room: 'Room',
+    th_hist_tenant: 'Tenant',
+    th_hist_meter: 'Meter Readings',
+    th_hist_light: 'Light Bill',
+    th_hist_rent: 'Rent',
+    th_hist_total: 'Total Due',
+    th_hist_status: 'Payment Status',
+    room_form_rent_label: 'Base Monthly Rent (₹)',
+    room_form_deposit_label: 'Security Deposit (₹)',
+    room_form_reading_label: 'Initial Meter Reading',
+    room_form_status_label: 'Occupancy Status',
+    status_occupied_opt: 'Occupied',
+    status_vacant_opt: 'Vacant',
+    btn_delete_tenant_details: '🗑️ Delete Tenant Details',
+    btn_cancel: 'Cancel',
+    btn_save_room: 'Save Room Details',
+    preview_modal_desc: 'This is the formatted notification message ready for instant dispatch to your tenant:',
+    btn_close: 'Close',
+    btn_send_whatsapp: '💬 Send via WhatsApp',
+    statement_modal_title: 'Tenant Statement & Settlement',
+    statement_total_billed: 'Total Billed',
+    statement_total_paid: 'Total Paid',
+    statement_balance_due: 'Balance Due',
+    statement_pending_dues: 'Pending Dues',
+    statement_deposit_held: 'Deposit Held',
+    statement_security_deposit: 'Security Deposit',
+    statement_net_settlement: 'Net Settlement',
+    statement_monthly_records: 'Monthly Records & Payment Dates',
+    btn_export_tenant_csv: '📥 Download Excel (CSV)',
+    btn_whatsapp_statement: '💬 WhatsApp Statement',
+    vacate_modal_title: '🗑️ Delete or Change Tenant Details',
+    vacate_settle_title: 'Leaving Tenant Settle Records',
+    vacate_settle_desc: 'Check all paid and pending rent/light bill records before departure.',
+    btn_view_statement: '📋 View Statement',
+    vacate_action_label: 'Action for this room',
+    vacate_opt_replace: 'Enter New Tenant Details for this Room',
+    vacate_opt_vacant: 'Delete Tenant Details & Mark as Vacant',
+    vacate_new_name_label: 'New Tenant Full Name *',
+    vacate_new_phone_label: 'New Tenant WhatsApp / Phone Number *',
+    vacate_new_rent_label: 'New Base Rent (₹)',
+    vacate_new_deposit_label: 'New Security Deposit (₹)',
+    vacate_new_reading_label: 'Initial Meter Reading',
+    btn_delete_details_vacant: '🗑️ Delete Details (Mark Vacant)',
+    btn_save_new_tenant: 'Save New Tenant',
+
+    // Dynamic strings
+    label_prev_reading: 'Prev Reading (Units)',
+    label_new_reading: 'New Reading (Enter here)',
+    placeholder_new_units: 'Enter new meter units',
+    label_units: 'Units',
+    label_light_bill: 'Light Bill',
+    label_room_rent: 'Room Rent (₹)',
+    label_total_amount: 'Total Amount',
+    btn_card_whatsapp: 'Send Bill on WhatsApp',
+    btn_mark_rent_paid: '⚪ Mark Rent Paid',
+    btn_rent_paid: 'Rent Paid',
+    btn_mark_light_paid: '⚪ Mark Light Paid',
+    btn_light_paid: 'Light Paid',
+    btn_edit_tenant: '✏️ Edit',
+    btn_delete_tenant: '🗑️ Delete Tenant',
+    btn_view_records: '📜 View Past Records',
+    deposit_badge_label: 'Deposit',
+    status_paid: 'Paid',
+    status_rent_paid_light_due: 'Rent Paid • Light Due',
+    status_light_paid_rent_due: 'Light Paid • Rent Due',
+    status_unpaid: 'Unpaid',
+    status_pending_reading: 'Pending Reading',
+    vacant_text: 'Vacant',
+    btn_assign_tenant: '➕ Assign New Tenant',
+    btn_edit_room_config: '✏️ Edit Room Config',
+    refund_to_tenant: 'Refund to Tenant',
+    due_from_tenant: 'Due from Tenant',
+    all_settled: 'All Settled (₹0)',
+    billed_breakdown_label: 'Rent: ₹{rent} | Light: ₹{light}',
+    paid_breakdown_label: 'Rent: ₹{rent} | Light: ₹{light}',
+    deposit_held_text: 'Deposit Held: ₹{amount}'
+  },
+  mr: {
+    nav_bill_generator: 'वीज व भाडे बिल',
+    nav_rooms_tenants: 'खोल्या आणि भाडेकरू',
+    nav_ledgers_history: 'हिशोब व जुने रेकॉर्ड',
+    nav_settings_notice: 'सेटिंग्ज व नोटीस',
+    elec_rate_title: 'लाईट बिल दर',
+    elec_rate_sub: 'प्रति युनिट दर',
+    default_rent_title: 'मूळ महिना भाडे',
+    default_rent_sub: 'दर महा भाडे',
+    btn_save_factors: 'दर सेव्ह करा',
+    period_label: 'महिना:',
+    stat_occupied_rooms: 'भरलेल्या खोल्या',
+    stat_power_consumption: 'एकूण वीज वापर',
+    stat_total_expected: 'एकूण येणे रक्कम',
+    stat_collected_pending: 'जमा / बाकी रक्कम',
+    stat_rent_light: 'भाडे + लाईट बिल',
+    stat_sum_meters: 'सर्व मीटरचा एकूण वापर (युनिट)',
+    stat_collected_label: 'जमा झाले',
+    section_billing_title: '⚡ मासिक वीज व खोली भाडे बिल',
+    section_billing_desc: 'मीटरचे नवीन युनिट टाका. लाईट बिल आणि एकूण भाडे आपोआप हिशोब होईल.',
+    section_rooms_title: '🚪 खोल्या आणि भाडेकरूंची यादी',
+    section_rooms_desc: 'खोली क्रमांक, भाडेकरूंचे नाव, फोन नंबर व डिपॉझिट व्यवस्थापित करा.',
+    btn_add_room: '+ नवीन खोली जोडा',
+    section_history_title: '📜 बिलांचा इतिहास व हिशोब',
+    section_history_desc: 'मागील महिन्यांची बिले आणि जमा झालेल्या रकमेचा हिशोब पहा व डाउनलोड करा.',
+    btn_export_csv: '📥 एक्सेल (CSV) डाउनलोड',
+    section_settings_title: '⚙️ ॲप सेटिंग्ज व नोटीस मेसेज',
+    section_settings_desc: 'इमारतीचे नाव, फोन पे/गुगल पे नंबर आणि मेसेज सेटिंग्ज बदला.',
+    th_room: 'खोली',
+    th_floor: 'मजला',
+    th_tenant: 'भाडेकरूचे नाव',
+    th_phone: 'फोन नंबर / व्हॉट्सअ‍ॅप',
+    th_rent: 'महिना भाडे',
+    th_deposit: 'डिपॉझिट',
+    th_meter: 'सुरुवातीचे मीटर',
+    th_status: 'स्थिती',
+    th_actions: 'कृती',
+    th_hist_month: 'महिना',
+    th_hist_room: 'खोली',
+    th_hist_tenant: 'भाडेकरू',
+    th_hist_meter: 'मीटर युनिट्स',
+    th_hist_light: 'लाईट बिल',
+    th_hist_rent: 'भाडे',
+    th_hist_total: 'एकूण येणे',
+    th_hist_status: 'पेमेंट स्थिती',
+    room_form_rent_label: 'मासिक खोली भाडे (₹)',
+    room_form_deposit_label: 'सिक्युरिटी डिपॉझिट (₹)',
+    room_form_reading_label: 'सुरुवातीचे मीटर रीडिंग (युनिट)',
+    room_form_status_label: 'खोली स्थिती',
+    status_occupied_opt: 'भाडेकरू आहे (Occupied)',
+    status_vacant_opt: 'रिकामी खोली (Vacant)',
+    btn_delete_tenant_details: '🗑️ भाडेकरूचे नाव काढा',
+    btn_cancel: 'रद्द करा',
+    btn_save_room: 'खोली माहिती सेव्ह करा',
+    preview_modal_desc: 'भाडेकरूला व्हॉट्सअ‍ॅपवर पाठवण्यासाठी तयार केलेला मेसेज:',
+    btn_close: 'बंद करा',
+    btn_send_whatsapp: '💬 व्हॉट्सअ‍ॅपवर पाठवा',
+    statement_modal_title: 'भाडेकरू हिशोब व अंतिम पावती',
+    statement_total_billed: 'एकूण बिल',
+    statement_total_paid: 'एकूण जमा',
+    statement_balance_due: 'बाकी येणे',
+    statement_pending_dues: 'थकबाकी रक्कम',
+    statement_deposit_held: 'जमा डिपॉझिट',
+    statement_security_deposit: 'सिक्युरिटी डिपॉझिट',
+    statement_net_settlement: 'अंतिम हिशोब',
+    statement_monthly_records: 'दर महिन्याचा तपशील व जमा तारखा',
+    btn_export_tenant_csv: '📥 एक्सेल (CSV) डाउनलोड',
+    btn_whatsapp_statement: '💬 व्हॉट्सअ‍ॅपवर हिशोब पाठवा',
+    vacate_modal_title: '🗑️ भाडेकरू काढा किंवा नवीन जोडा',
+    vacate_settle_title: 'जाणाऱ्या भाडेकरूचा हिशोब',
+    vacate_settle_desc: 'खोली सोडण्यापूर्वी भाडे व लाईट बिलाची थकबाकी तपासा.',
+    btn_view_statement: '📋 पूर्ण हिशोब पहा',
+    vacate_action_label: 'या खोलीसाठी काय करायचे आहे?',
+    vacate_opt_replace: 'या खोलीसाठी नवीन भाडेकरूचे नाव नोंदवा',
+    vacate_opt_vacant: 'भाडेकरू काढा व खोली रिकामी नोंदवा',
+    vacate_new_name_label: 'नवीन भाडेकरूचे पूर्ण नाव *',
+    vacate_new_phone_label: 'नवीन भाडेकरूचा मोबाईल / व्हॉट्सअ‍ॅप नंबर *',
+    vacate_new_rent_label: 'नवीन महिना भाडे (₹)',
+    vacate_new_deposit_label: 'नवीन सिक्युरिटी डिपॉझिट (₹)',
+    vacate_new_reading_label: 'सध्याचे मीटर युनिट्स',
+    btn_delete_details_vacant: '🗑️ भाडेकरू काढा (खोली रिकामी करा)',
+    btn_save_new_tenant: 'नवीन भाडेकरू सेव्ह करा',
+
+    // Dynamic strings
+    label_prev_reading: 'मागील युनिट',
+    label_new_reading: 'नवीन युनिट (येथे टाका)',
+    placeholder_new_units: 'नवीन मीटर युनिट टाका',
+    label_units: 'वापर युनिट',
+    label_light_bill: 'लाईट बिल',
+    label_room_rent: 'खोली भाडे (₹)',
+    label_total_amount: 'एकूण रक्कम',
+    btn_card_whatsapp: 'व्हॉट्सअ‍ॅपवर बिल पाठवा',
+    btn_mark_rent_paid: '⚪ भाडे जमा करा',
+    btn_rent_paid: 'भाडे जमा',
+    btn_mark_light_paid: '⚪ लाईट बिल जमा करा',
+    btn_light_paid: 'लाईट जमा',
+    btn_edit_tenant: '✏️ दुरुस्त करा',
+    btn_delete_tenant: '🗑️ भाडेकरू काढा',
+    btn_view_records: '📜 जुना हिशोब पहा',
+    deposit_badge_label: 'डिपॉझिट',
+    status_paid: 'जमा झाले',
+    status_rent_paid_light_due: 'भाडे जमा • लाईट बाकी',
+    status_light_paid_rent_due: 'लाईट जमा • भाडे बाकी',
+    status_unpaid: 'बाकी आहे',
+    status_pending_reading: 'रीडिंग टाका',
+    vacant_text: 'रिकामी खोली',
+    btn_assign_tenant: '➕ नवीन भाडेकरू जोडा',
+    btn_edit_room_config: '✏️ खोली माहिती बदला',
+    refund_to_tenant: 'भाडेकरूस परत करावयाचे',
+    due_from_tenant: 'भाडेकरूकडून बाकी येणे',
+    all_settled: 'सर्व हिशोब पूर्ण (₹0)',
+    billed_breakdown_label: 'भाडे: ₹{rent} | लाईट: ₹{light}',
+    paid_breakdown_label: 'भाडे: ₹{rent} | लाईट: ₹{light}',
+    deposit_held_text: 'जमा डिपॉझिट: ₹{amount}'
+  }
+};
+
+function getAppLanguage() {
+  return localStorage.getItem('rentflow_lang') || 'en';
+}
+
+function setAppLanguage(lang) {
+  localStorage.setItem('rentflow_lang', lang);
+  applyLanguage(lang);
+}
+
+function toggleLanguage() {
+  const current = getAppLanguage();
+  const next = current === 'mr' ? 'en' : 'mr';
+  setAppLanguage(next);
+  showToast(next === 'mr' ? 'मराठी भाषा निवडली आहे' : 'Switched to English', 'success');
+}
+
+function t(key, vars = {}) {
+  const lang = getAppLanguage();
+  let text = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS.en && TRANSLATIONS.en[key]) || key;
+  for (const [vKey, vVal] of Object.entries(vars)) {
+    text = text.replace(new RegExp(`\\{${vKey}\\}`, 'g'), vVal);
+  }
+  return text;
+}
+
+function applyLanguage(lang) {
+  const labelEl = document.getElementById('lang-toggle-label');
+  if (labelEl) {
+    labelEl.textContent = lang === 'mr' ? 'English' : 'मराठी';
+  }
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const text = t(key);
+    if (text) {
+      el.textContent = text;
+    }
+  });
+
+  if (state.rooms && state.rooms.length > 0) {
+    renderRoomCards();
+  }
+  if (document.getElementById('rooms-view')?.classList.contains('active')) {
+    loadRoomsTable();
+  }
+}
+
 // Toast notification helper
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
@@ -135,6 +416,7 @@ function switchView(viewId) {
 async function initApp() {
   setupMonthPicker();
   setupEventListeners();
+  applyLanguage(getAppLanguage());
   await loadSettingsAndFactors();
   await loadBillingDashboard();
 }
@@ -297,32 +579,36 @@ function renderRoomCards() {
               <div class="room-avatar" style="background: #FFFFFF; color: var(--pastel-amber-text); border: 1px solid var(--pastel-amber-border);">${room.room_number}</div>
               <div class="tenant-meta">
                 <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                  <h4 style="color: var(--pastel-amber-text);">Room ${room.room_number} (Vacant)</h4>
+                  <h4 style="color: var(--pastel-amber-text);">${room.room_number} (${t('vacant_text')})</h4>
                   <button
                     type="button"
                     class="btn-badge-edit"
                     onclick="openEditRoomModal(${room.id})"
                     title="Edit room settings"
-                  >✏️ Edit</button>
+                  >✏️ ${t('btn_edit_tenant')}</button>
                 </div>
                 <div class="tenant-phone">
-                  <span>⚪ No active tenant</span>
+                  <span>⚪ ${t('vacant_text')}</span>
                   <span style="margin: 0 4px;">•</span>
                   <span>${room.floor || 'Floor'}</span>
                 </div>
               </div>
             </div>
-            <span class="bill-status-pill unbilled">Vacant</span>
+            <span class="bill-status-pill unbilled">${t('vacant_text')}</span>
           </div>
 
           <div style="padding: 1rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
             <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
-              <span style="color: var(--text-dim);">Last Meter Reading:</span>
-              <strong>${prevReading} units</strong>
+              <span style="color: var(--text-dim);">${t('label_prev_reading')}:</span>
+              <strong>${prevReading} ${t('label_units')}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
-              <span style="color: var(--text-dim);">Standard Monthly Rent:</span>
+              <span style="color: var(--text-dim);">${t('label_room_rent')}:</span>
               <strong>₹${Number(room.base_rent || state.defaultRent).toLocaleString('en-IN')}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+              <span style="color: var(--text-dim);">${t('deposit_badge_label')}:</span>
+              <strong>₹${Number(room.security_deposit || 0).toLocaleString('en-IN')}</strong>
             </div>
           </div>
 
@@ -333,7 +619,7 @@ function renderRoomCards() {
               style="width: 100%; min-height: 50px; font-size: 1rem;"
               onclick="openVacateTenantModal(${room.id})"
             >
-              ➕ Assign New Tenant to Room ${room.room_number}
+              ➕ ${t('btn_assign_tenant')} (${room.room_number})
             </button>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem;">
               <button
@@ -341,14 +627,14 @@ function renderRoomCards() {
                 class="btn-text-link"
                 onclick="openEditRoomModal(${room.id})"
               >
-                ✏️ Edit Room Config
+                ✏️ ${t('btn_edit_room_config')}
               </button>
               <button
                 type="button"
                 class="btn-text-link"
                 onclick="openTenantStatementModal(${room.id})"
               >
-                📜 View Past Records
+                📜 ${t('btn_view_records')}
               </button>
             </div>
           </div>
@@ -370,21 +656,21 @@ function renderRoomCards() {
     const isLightPaid = isBilled && (bill.light_status === 'paid' || (bill.status === 'paid' && bill.light_status !== 'unpaid'));
 
     let statusPillClass = 'unbilled';
-    let statusText = 'Pending Reading';
+    let statusText = t('status_pending_reading');
 
     if (isBilled) {
       if (isRentPaid && isLightPaid) {
         statusPillClass = 'paid';
-        statusText = 'Paid';
+        statusText = t('status_paid');
       } else if (isRentPaid) {
         statusPillClass = 'partial';
-        statusText = 'Rent Paid • Light Due';
+        statusText = t('status_rent_paid_light_due');
       } else if (isLightPaid) {
         statusPillClass = 'partial';
-        statusText = 'Light Paid • Rent Due';
+        statusText = t('status_light_paid_rent_due');
       } else {
         statusPillClass = 'unpaid';
-        statusText = 'Unpaid';
+        statusText = t('status_unpaid');
       }
     }
 
@@ -405,19 +691,21 @@ function renderRoomCards() {
                   class="btn-badge-edit"
                   onclick="openEditRoomModal(${room.id})"
                   title="Edit tenant details (name, phone, rent)"
-                >✏️ Edit</button>
+                >✏️ ${t('btn_edit_tenant')}</button>
                 <button
                   type="button"
                   class="btn-badge-delete"
                   onclick="openVacateTenantModal(${room.id})"
                   title="Delete or change tenant details when tenant leaves"
-                >🗑️ Delete Tenant</button>
+                >🗑️ ${t('btn_delete_tenant')}</button>
               </div>
               <div class="tenant-phone">
                 <span>📞</span>
                 <span>${room.tenant_phone}</span>
                 <span style="margin: 0 4px;">•</span>
                 <span>${room.floor || 'Floor'}</span>
+                <span style="margin: 0 4px;">•</span>
+                <span class="deposit-badge">💰 ${t('deposit_badge_label')}: ₹${Number(room.security_deposit || 0).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -429,7 +717,7 @@ function renderRoomCards() {
           <div class="meter-inputs-row">
             <!-- Previous Reading -->
             <div class="input-field-group">
-              <label>Prev Reading (Units)</label>
+              <label>${t('label_prev_reading')}</label>
               <input
                 type="number"
                 step="any"
@@ -444,7 +732,7 @@ function renderRoomCards() {
 
             <!-- Current Reading -->
             <div class="input-field-group">
-              <label class="label-highlight">New Reading (Enter here)</label>
+              <label class="label-highlight">${t('label_new_reading')}</label>
               <input
                 type="number"
                 step="any"
@@ -452,7 +740,7 @@ function renderRoomCards() {
                 id="curr-reading-${room.id}"
                 value="${currReading}"
                 data-room-id="${room.id}"
-                placeholder="Enter new meter units"
+                placeholder="${t('placeholder_new_units')}"
                 oninput="handleReadingChange(${room.id})"
               />
             </div>
@@ -461,11 +749,11 @@ function renderRoomCards() {
           <!-- Live Light Bill Calculation Strip -->
           <div class="calc-summary-strip">
             <div>
-              <span>⚡ Units: </span>
+              <span>⚡ ${t('label_units')}: </span>
               <span class="calc-units-badge" id="calc-units-${room.id}">${units} units</span>
             </div>
             <div>
-              <span>Light Bill: </span>
+              <span>${t('label_light_bill')}: </span>
               <span class="calc-amount-badge" id="calc-elec-amt-${room.id}">₹${elecAmount}</span>
             </div>
           </div>
@@ -474,7 +762,7 @@ function renderRoomCards() {
         <!-- Rent Row -->
         <div class="charges-row" style="grid-template-columns: 1fr;">
           <div class="input-field-group">
-            <label>Room Rent (₹)</label>
+            <label>${t('label_room_rent')}</label>
             <input
               type="number"
               class="custom-input rent-amount-input"
@@ -488,7 +776,7 @@ function renderRoomCards() {
 
         <!-- Total Payable Strip -->
         <div class="card-total-bar">
-          <span class="card-total-label">Total Amount</span>
+          <span class="card-total-label">${t('label_total_amount')}</span>
           <span class="card-total-val" id="total-val-${room.id}">₹${totalAmount.toLocaleString('en-IN')}</span>
         </div>
 
@@ -500,7 +788,7 @@ function renderRoomCards() {
             onclick="sendWhatsAppNotification(${room.id})"
             title="Auto-generate bill and open WhatsApp directly"
           >
-            <span style="font-size: 1.25rem;">💬</span> Send Bill on WhatsApp
+            <span style="font-size: 1.25rem;">💬</span> ${t('btn_card_whatsapp')}
           </button>
 
           <!-- 2 Different Payment Options: Rent Paid & Light Bill Paid -->
@@ -511,7 +799,7 @@ function renderRoomCards() {
               onclick="toggleSplitPaid(${room.id}, 'rent')"
               title="Click to mark Rent as Paid or Unpaid"
             >
-              <span>${isRentPaid ? `✅ Rent Paid${rentDateLabel}` : '⚪ Mark Rent Paid'}</span>
+              <span>${isRentPaid ? `✅ ${t('btn_rent_paid')}${rentDateLabel}` : t('btn_mark_rent_paid')}</span>
             </button>
 
             <button
@@ -520,7 +808,7 @@ function renderRoomCards() {
               onclick="toggleSplitPaid(${room.id}, 'light')"
               title="Click to mark Light Bill as Paid or Unpaid"
             >
-              <span>${isLightPaid ? `✅ Light Paid${lightDateLabel}` : '⚪ Mark Light Paid'}</span>
+              <span>${isLightPaid ? `✅ ${t('btn_light_paid')}${lightDateLabel}` : t('btn_mark_light_paid')}</span>
             </button>
           </div>
 
@@ -532,7 +820,7 @@ function renderRoomCards() {
               onclick="openEditRoomModal(${room.id})"
               title="Edit tenant name, phone, rent"
             >
-              ✏️ Edit Tenant
+              ✏️ ${t('btn_edit_tenant')}
             </button>
             <button
               type="button"
@@ -541,7 +829,7 @@ function renderRoomCards() {
               onclick="openVacateTenantModal(${room.id})"
               title="Delete tenant details when tenant leaves"
             >
-              🗑️ Delete Tenant
+              🗑️ ${t('btn_delete_tenant')}
             </button>
             <button
               type="button"
@@ -549,7 +837,7 @@ function renderRoomCards() {
               onclick="openTenantStatementModal(${room.id})"
               title="View complete bill and payment history for this tenant"
             >
-              📜 Statement
+              📜 ${t('btn_view_records')}
             </button>
           </div>
         </div>
@@ -843,19 +1131,94 @@ async function openTenantStatementModal(roomId) {
   const roomNum = room ? room.room_number : (ledger.room?.room_number || '');
   const tenantName = ledger.tenant_name || 'Tenant';
   const tenantPhone = ledger.tenant_phone || '';
+  const deposit = Number(ledger.deposit_amount || room?.security_deposit || 0);
+  const balanceDue = Number(ledger.balance_due || 0);
+  const netRefund = deposit > balanceDue ? (deposit - balanceDue) : 0;
+  const netDue = balanceDue > deposit ? (balanceDue - deposit) : 0;
 
-  document.getElementById('statement-modal-title').textContent = `Statement • ${tenantName}`;
+  document.getElementById('statement-modal-title').textContent = `${t('statement_modal_title')} • ${tenantName}`;
   document.getElementById('statement-modal-subtitle').textContent = `Room ${roomNum} • ${tenantPhone || 'No contact'}`;
 
   document.getElementById('statement-total-billed').textContent = `₹${ledger.total_billed.toLocaleString('en-IN')}`;
-  document.getElementById('statement-billed-breakdown').textContent = `Rent: ₹${ledger.total_rent_billed.toLocaleString('en-IN')} | Light: ₹${ledger.total_light_billed.toLocaleString('en-IN')}`;
+  document.getElementById('statement-billed-breakdown').textContent = t('billed_breakdown_label', {
+    rent: ledger.total_rent_billed.toLocaleString('en-IN'),
+    light: ledger.total_light_billed.toLocaleString('en-IN')
+  });
 
   document.getElementById('statement-total-paid').textContent = `₹${ledger.total_paid.toLocaleString('en-IN')}`;
-  document.getElementById('statement-paid-breakdown').textContent = `Rent: ₹${ledger.total_rent_paid.toLocaleString('en-IN')} | Light: ₹${ledger.total_light_paid.toLocaleString('en-IN')}`;
+  document.getElementById('statement-paid-breakdown').textContent = t('paid_breakdown_label', {
+    rent: ledger.total_rent_paid.toLocaleString('en-IN'),
+    light: ledger.total_light_paid.toLocaleString('en-IN')
+  });
 
   const balanceEl = document.getElementById('statement-balance-due');
-  balanceEl.textContent = `₹${ledger.balance_due.toLocaleString('en-IN')}`;
-  balanceEl.style.color = ledger.balance_due > 0 ? 'var(--pastel-amber-text)' : 'var(--pastel-green-text)';
+  balanceEl.textContent = `₹${balanceDue.toLocaleString('en-IN')}`;
+  balanceEl.style.color = balanceDue > 0 ? 'var(--pastel-amber-text)' : 'var(--pastel-green-text)';
+
+  // Security Deposit Held Card
+  const depositEl = document.getElementById('statement-deposit-held');
+  if (depositEl) {
+    depositEl.textContent = `₹${deposit.toLocaleString('en-IN')}`;
+  }
+
+  // Net Settlement Card
+  const netCard = document.getElementById('statement-net-card');
+  const netLabel = document.getElementById('statement-net-label');
+  const netVal = document.getElementById('statement-net-settlement');
+  const netSubtext = document.getElementById('statement-net-subtext');
+
+  if (netRefund > 0) {
+    if (netCard) {
+      netCard.style.backgroundColor = 'var(--pastel-green-bg)';
+      netCard.style.borderColor = 'var(--pastel-green-border)';
+    }
+    if (netLabel) {
+      netLabel.textContent = t('statement_net_settlement');
+      netLabel.style.color = 'var(--pastel-green-text)';
+    }
+    if (netVal) {
+      netVal.textContent = `₹${netRefund.toLocaleString('en-IN')}`;
+      netVal.style.color = 'var(--pastel-green-text)';
+    }
+    if (netSubtext) {
+      netSubtext.textContent = t('refund_to_tenant');
+      netSubtext.style.color = 'var(--pastel-green-text)';
+    }
+  } else if (netDue > 0) {
+    if (netCard) {
+      netCard.style.backgroundColor = 'var(--pastel-rose-bg)';
+      netCard.style.borderColor = 'var(--pastel-rose-border)';
+    }
+    if (netLabel) {
+      netLabel.textContent = t('statement_net_settlement');
+      netLabel.style.color = 'var(--pastel-rose-text)';
+    }
+    if (netVal) {
+      netVal.textContent = `₹${netDue.toLocaleString('en-IN')}`;
+      netVal.style.color = 'var(--pastel-rose-text)';
+    }
+    if (netSubtext) {
+      netSubtext.textContent = t('due_from_tenant');
+      netSubtext.style.color = 'var(--pastel-rose-text)';
+    }
+  } else {
+    if (netCard) {
+      netCard.style.backgroundColor = 'var(--pastel-blue-bg)';
+      netCard.style.borderColor = 'var(--pastel-blue-border)';
+    }
+    if (netLabel) {
+      netLabel.textContent = t('statement_net_settlement');
+      netLabel.style.color = 'var(--pastel-blue-text)';
+    }
+    if (netVal) {
+      netVal.textContent = '₹0';
+      netVal.style.color = 'var(--pastel-blue-text)';
+    }
+    if (netSubtext) {
+      netSubtext.textContent = t('all_settled');
+      netSubtext.style.color = 'var(--text-muted)';
+    }
+  }
 
   const listContainer = document.getElementById('statement-months-list');
   if (ledger.bills.length === 0) {
@@ -872,32 +1235,32 @@ async function openTenantStatementModal(roomId) {
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.4rem;">
             <strong style="font-size: 0.95rem; color: var(--text-main);">${formatBillingMonth(b.billing_month)}</strong>
             <span class="bill-status-pill ${b.status === 'paid' ? 'paid' : (b.status === 'partial' ? 'partial' : 'unpaid')}">
-              ${b.status === 'paid' ? 'All Paid' : (b.status === 'partial' ? 'Partially Paid' : 'Unpaid')}
+              ${b.status === 'paid' ? t('status_paid') : (b.status === 'partial' ? (isRentPaid ? t('status_rent_paid_light_due') : t('status_light_paid_rent_due')) : t('status_unpaid'))}
             </span>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; font-size: 0.86rem;">
             <!-- Electricity record -->
             <div style="background: var(--bg-primary); padding: 0.6rem 0.75rem; border-radius: var(--radius-sm);">
-              <div style="color: var(--text-dim); font-size: 0.76rem;">⚡ Light (${b.units_consumed}u @ ₹${b.electricity_rate})</div>
+              <div style="color: var(--text-dim); font-size: 0.76rem;">⚡ ${t('label_light_bill')} (${b.units_consumed}u @ ₹${b.electricity_rate})</div>
               <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.electricity_amount).toLocaleString('en-IN')}</div>
               <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isLightPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
-                ${isLightPaid ? `✅ Paid on ${lightPaidDate}` : '⚪ Due'}
+                ${isLightPaid ? `✅ ${t('btn_light_paid')} (${lightPaidDate})` : '⚪ Due'}
               </div>
             </div>
 
             <!-- Rent record -->
             <div style="background: var(--bg-primary); padding: 0.6rem 0.75rem; border-radius: var(--radius-sm);">
-              <div style="color: var(--text-dim); font-size: 0.76rem;">🏠 Room Rent</div>
+              <div style="color: var(--text-dim); font-size: 0.76rem;">🏠 ${t('label_room_rent')}</div>
               <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.rent_amount).toLocaleString('en-IN')}</div>
               <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isRentPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
-                ${isRentPaid ? `✅ Paid on ${rentPaidDate}` : '⚪ Due'}
+                ${isRentPaid ? `✅ ${t('btn_rent_paid')} (${rentPaidDate})` : '⚪ Due'}
               </div>
             </div>
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; font-weight: 700; padding-top: 0.2rem;">
-            <span>Month Total Due:</span>
+            <span>${t('label_total_amount')}:</span>
             <span style="font-family: var(--font-mono); font-size: 1.05rem;">₹${Number(b.total_amount).toLocaleString('en-IN')}</span>
           </div>
         </div>
@@ -913,31 +1276,82 @@ function shareStatementWhatsApp() {
   const l = currentStatementData;
   const settings = state.settings || {};
   const landlordName = settings.landlord_name || 'Malganga Niwas';
+  const isMr = getAppLanguage() === 'mr';
 
-  let msg = `📢 *TENANT ACCOUNT STATEMENT & SETTLEMENT*\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `Dear ${l.tenant_name},\n`;
-  msg += `Here is your complete billing & payment ledger for *Room ${l.room?.room_number || ''}* at *${landlordName}*:\n\n`;
-  msg += `📊 *SUMMARY:*\n`;
-  msg += `• Total Billed: ₹${l.total_billed.toLocaleString('en-IN')}\n`;
-  msg += `• Total Paid: ₹${l.total_paid.toLocaleString('en-IN')}\n`;
-  msg += `• *NET BALANCE DUE:* *₹${l.balance_due.toLocaleString('en-IN')}*\n\n`;
-  msg += `📜 *MONTHLY RECORDS:*\n`;
+  const deposit = Number(l.deposit_amount || l.room?.security_deposit || 0);
+  const balanceDue = Number(l.balance_due || 0);
+  const netRefund = deposit > balanceDue ? (deposit - balanceDue) : 0;
+  const netDue = balanceDue > deposit ? (balanceDue - deposit) : 0;
 
-  for (const b of l.bills) {
-    const isRentPaid = b.rent_status === 'paid';
-    const isLightPaid = b.light_status === 'paid';
-    const rentDate = b.rent_paid_date ? ` (Paid on ${formatLongDate(b.rent_paid_date)})` : '';
-    const lightDate = b.light_paid_date ? ` (Paid on ${formatLongDate(b.light_paid_date)})` : '';
+  let msg = '';
 
-    msg += `• *${formatBillingMonth(b.billing_month)}*: Total ₹${b.total_amount.toLocaleString('en-IN')}\n`;
-    msg += `   - Rent: ₹${b.rent_amount.toLocaleString('en-IN')} [${isRentPaid ? '✅ Paid' + rentDate : '⚪ Due'}]\n`;
-    msg += `   - Light (${b.units_consumed}u): ₹${b.electricity_amount.toLocaleString('en-IN')} [${isLightPaid ? '✅ Paid' + lightDate : '⚪ Due'}]\n`;
+  if (isMr) {
+    msg += `📢 *भाडेकरू अंतिम हिशोब व पावती*\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `प्रिय ${l.tenant_name},\n`;
+    msg += `*${landlordName}* येथील *खोली क्र. ${l.room?.room_number || ''}* चा एकूण बिलांचा व जमा रकमेचा हिशोब:\n\n`;
+    msg += `📊 *एकूण सारांश:*\n`;
+    msg += `• एकूण बिल रक्कम: ₹${l.total_billed.toLocaleString('en-IN')}\n`;
+    msg += `• एकूण जमा रक्कम: ₹${l.total_paid.toLocaleString('en-IN')}\n`;
+    msg += `• बाकी थकबाकी: ₹${balanceDue.toLocaleString('en-IN')}\n`;
+    msg += `• जमा सिक्युरिटी डिपॉझिट: ₹${deposit.toLocaleString('en-IN')}\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+    if (netRefund > 0) {
+      msg += `👉 *भाडेकरूस परत करावयाची रक्कम (डिपॉझिट मधून): ₹${netRefund.toLocaleString('en-IN')}*\n`;
+    } else if (netDue > 0) {
+      msg += `👉 *भाडेकरूकडून येणे बाकी रक्कम: ₹${netDue.toLocaleString('en-IN')}*\n`;
+    } else {
+      msg += `👉 *सर्व हिशोब पूर्ण झाला आहे (बाकी ₹0)*\n`;
+    }
+    msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    msg += `📜 *दर महिन्याचा तपशील:*\n`;
+
+    for (const b of l.bills) {
+      const isRentPaid = b.rent_status === 'paid';
+      const isLightPaid = b.light_status === 'paid';
+      const rentDate = b.rent_paid_date ? ` (जमा तारीख: ${formatLongDate(b.rent_paid_date)})` : '';
+      const lightDate = b.light_paid_date ? ` (जमा तारीख: ${formatLongDate(b.light_paid_date)})` : '';
+
+      msg += `• *${formatBillingMonth(b.billing_month)}*: एकूण ₹${b.total_amount.toLocaleString('en-IN')}\n`;
+      msg += `   - महिना भाडे: ₹${b.rent_amount.toLocaleString('en-IN')} [${isRentPaid ? '✅ जमा' + rentDate : '⚪ बाकी'}]\n`;
+      msg += `   - लाईट बिल (${b.units_consumed}u): ₹${b.electricity_amount.toLocaleString('en-IN')} [${isLightPaid ? '✅ जमा' + lightDate : '⚪ बाकी'}]\n`;
+    }
+  } else {
+    msg += `📢 *TENANT ACCOUNT STATEMENT & SETTLEMENT*\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `Dear ${l.tenant_name},\n`;
+    msg += `Here is your complete billing & payment ledger for *Room ${l.room?.room_number || ''}* at *${landlordName}*:\n\n`;
+    msg += `📊 *SUMMARY:*\n`;
+    msg += `• Total Billed: ₹${l.total_billed.toLocaleString('en-IN')}\n`;
+    msg += `• Total Paid: ₹${l.total_paid.toLocaleString('en-IN')}\n`;
+    msg += `• Balance Due: ₹${balanceDue.toLocaleString('en-IN')}\n`;
+    msg += `• Security Deposit Held: ₹${deposit.toLocaleString('en-IN')}\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+    if (netRefund > 0) {
+      msg += `👉 *NET REFUND TO TENANT: ₹${netRefund.toLocaleString('en-IN')}*\n`;
+    } else if (netDue > 0) {
+      msg += `👉 *NET DUE FROM TENANT: ₹${netDue.toLocaleString('en-IN')}*\n`;
+    } else {
+      msg += `👉 *ALL DUES FULLY SETTLED (₹0)*\n`;
+    }
+    msg += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    msg += `📜 *MONTHLY RECORDS:*\n`;
+
+    for (const b of l.bills) {
+      const isRentPaid = b.rent_status === 'paid';
+      const isLightPaid = b.light_status === 'paid';
+      const rentDate = b.rent_paid_date ? ` (Paid on ${formatLongDate(b.rent_paid_date)})` : '';
+      const lightDate = b.light_paid_date ? ` (Paid on ${formatLongDate(b.light_paid_date)})` : '';
+
+      msg += `• *${formatBillingMonth(b.billing_month)}*: Total ₹${b.total_amount.toLocaleString('en-IN')}\n`;
+      msg += `   - Rent: ₹${b.rent_amount.toLocaleString('en-IN')} [${isRentPaid ? '✅ Paid' + rentDate : '⚪ Due'}]\n`;
+      msg += `   - Light (${b.units_consumed}u): ₹${b.electricity_amount.toLocaleString('en-IN')} [${isLightPaid ? '✅ Paid' + lightDate : '⚪ Due'}]\n`;
+    }
   }
 
   msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
   if (settings.upi_id) {
-    msg += `💳 *Pay via UPI:* ${settings.upi_id}\n`;
+    msg += `💳 *UPI ID:* ${settings.upi_id}\n`;
   }
   if (settings.landlord_phone) {
     msg += `📞 *GPay / PhonePe:* ${settings.landlord_phone}\n`;
@@ -953,7 +1367,12 @@ function shareStatementWhatsApp() {
 function exportTenantCsv() {
   if (!currentStatementData) return;
   const l = currentStatementData;
-  let csv = 'Month,Room,Tenant Name,Tenant Phone,Previous Reading,Current Reading,Units Consumed,Electricity Rate (INR),Electricity Amount (INR),Electricity Status,Electricity Paid Date,Rent Amount (INR),Rent Status,Rent Paid Date,Total Due (INR),Total Paid (INR),Overall Status\n';
+  const deposit = Number(l.deposit_amount || l.room?.security_deposit || 0);
+  const balanceDue = Number(l.balance_due || 0);
+  const netRefund = deposit > balanceDue ? (deposit - balanceDue) : 0;
+  const netDue = balanceDue > deposit ? (balanceDue - deposit) : 0;
+
+  let csv = 'Month,Room,Tenant Name,Tenant Phone,Security Deposit Held (INR),Previous Reading,Current Reading,Units Consumed,Electricity Rate (INR),Electricity Amount (INR),Electricity Status,Electricity Paid Date,Rent Amount (INR),Rent Status,Rent Paid Date,Total Due (INR),Total Paid (INR),Overall Status\n';
 
   for (const b of l.bills) {
     const isRentPaid = b.rent_status === 'paid';
@@ -961,8 +1380,11 @@ function exportTenantCsv() {
     const rentPaidDate = b.rent_paid_date ? formatLongDate(b.rent_paid_date) : (isRentPaid ? (formatLongDate(b.paid_date) || '') : '');
     const lightPaidDate = b.light_paid_date ? formatLongDate(b.light_paid_date) : (isLightPaid ? (formatLongDate(b.paid_date) || '') : '');
     const totalPaid = b.paid_amount !== undefined ? b.paid_amount : (b.status === 'paid' ? b.total_amount : 0);
-    csv += `"${b.billing_month}","${l.room?.room_number || b.room_number}","${b.tenant_name || l.tenant_name}","${b.tenant_phone || l.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
+    csv += `"${b.billing_month}","${l.room?.room_number || b.room_number}","${b.tenant_name || l.tenant_name}","${b.tenant_phone || l.tenant_phone}",${deposit},${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
   }
+
+  // Add final settlement summary row
+  csv += `\n"SUMMARY","Security Deposit Held: ${deposit}","Total Billed: ${l.total_billed}","Total Paid: ${l.total_paid}","Balance Due: ${balanceDue}","Net Settlement: ${netRefund > 0 ? ('Refund ₹' + netRefund) : ('Due ₹' + netDue)}"\n`;
 
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -991,7 +1413,13 @@ async function openVacateTenantModal(roomId) {
   document.getElementById('vacate-new-name').value = '';
   document.getElementById('vacate-new-phone').value = '';
   document.getElementById('vacate-new-rent').value = room.base_rent || state.defaultRent;
+  document.getElementById('vacate-new-deposit').value = room.security_deposit || 15000;
   document.getElementById('vacate-new-reading').value = room.effective_previous_reading || room.meter_initial_reading || 0;
+
+  const depositInfo = document.getElementById('vacate-deposit-info');
+  if (depositInfo) {
+    depositInfo.textContent = t('deposit_held_text', { amount: Number(room.security_deposit || 0).toLocaleString('en-IN') });
+  }
 
   document.getElementById('vacate-tenant-modal').classList.add('active');
 }
@@ -1059,6 +1487,7 @@ async function handleVacateTenantSubmit(e) {
       const newName = document.getElementById('vacate-new-name').value.trim();
       const newPhone = document.getElementById('vacate-new-phone').value.trim();
       const newRent = Number(document.getElementById('vacate-new-rent').value);
+      const newDeposit = Number(document.getElementById('vacate-new-deposit').value) || 0;
       const newReading = Number(document.getElementById('vacate-new-reading').value);
 
       if (!newName || !newPhone) {
@@ -1070,6 +1499,7 @@ async function handleVacateTenantSubmit(e) {
         tenant_name: newName,
         tenant_phone: newPhone,
         base_rent: newRent,
+        security_deposit: newDeposit,
         meter_initial_reading: newReading
       });
 
@@ -1227,7 +1657,7 @@ async function loadRoomsTable() {
     if (!tbody) return;
 
     if (rooms.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-dim);">No rooms configured yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-dim);">No rooms configured yet.</td></tr>`;
       return;
     }
 
@@ -1238,16 +1668,17 @@ async function loadRoomsTable() {
         <td><strong>${escapeHtml(r.tenant_name)}</strong></td>
         <td>${r.tenant_phone}</td>
         <td>₹${Number(r.base_rent).toLocaleString('en-IN')}</td>
+        <td><strong>₹${Number(r.security_deposit || 0).toLocaleString('en-IN')}</strong></td>
         <td>${r.meter_initial_reading} units</td>
         <td>
           <span class="bill-status-pill ${r.status === 'occupied' ? 'paid' : 'unbilled'}">
-            ${r.status}
+            ${r.status === 'occupied' ? (getAppLanguage() === 'mr' ? 'भाडेकरू आहे' : 'Occupied') : (getAppLanguage() === 'mr' ? 'रिकामी' : 'Vacant')}
           </span>
         </td>
         <td style="text-align: right; display: flex; gap: 0.35rem; justify-content: flex-end; flex-wrap: wrap;">
-          <button class="btn-sm-action" onclick="openTenantStatementModal(${r.id})" title="View tenant statement & settlement records">📋 Statement</button>
-          <button class="btn-sm-action" style="color: var(--pastel-blue-text);" onclick="openVacateTenantModal(${r.id})" title="Vacate or change tenant details">🚪 Change Tenant</button>
-          <button class="btn-sm-action" onclick="openEditRoomModal(${r.id})">✏️ Edit</button>
+          <button class="btn-sm-action" onclick="openTenantStatementModal(${r.id})" title="View tenant statement & settlement records">📋 ${getAppLanguage() === 'mr' ? 'हिशोब' : 'Statement'}</button>
+          <button class="btn-sm-action" style="color: var(--pastel-blue-text);" onclick="openVacateTenantModal(${r.id})" title="Vacate or change tenant details">🚪 ${getAppLanguage() === 'mr' ? 'भाडेकरू बदला' : 'Change Tenant'}</button>
+          <button class="btn-sm-action" onclick="openEditRoomModal(${r.id})">✏️ ${t('btn_edit_tenant')}</button>
           <button class="btn-sm-action" style="color: var(--pastel-rose-text);" onclick="deleteRoomConfirm(${r.id}, '${r.room_number}')">🗑️</button>
         </td>
       </tr>
@@ -1260,9 +1691,10 @@ async function loadRoomsTable() {
 // Add / Edit Room Modal Handlers
 function openAddRoomModal() {
   document.getElementById('room-form-id').value = '';
-  document.getElementById('room-form-title').textContent = 'Add New Room & Tenant';
+  document.getElementById('room-form-title').textContent = t('modal_add_room_title');
   document.getElementById('room-form').reset();
   document.getElementById('room-form-rent').value = state.defaultRent;
+  document.getElementById('room-form-deposit').value = '15000';
   document.getElementById('room-form-reading').value = '0';
   const delBtn = document.getElementById('btn-modal-delete-tenant');
   if (delBtn) delBtn.style.display = 'none';
@@ -1276,12 +1708,13 @@ async function openEditRoomModal(id) {
     const r = res.room;
 
     document.getElementById('room-form-id').value = r.id;
-    document.getElementById('room-form-title').textContent = `Edit Room ${r.room_number}`;
+    document.getElementById('room-form-title').textContent = `${t('modal_edit_room_title')} • Room ${r.room_number}`;
     document.getElementById('room-form-number').value = r.room_number;
     document.getElementById('room-form-floor').value = r.floor || 'Ground Floor';
     document.getElementById('room-form-tenant').value = r.tenant_name;
     document.getElementById('room-form-phone').value = r.tenant_phone;
     document.getElementById('room-form-rent').value = r.base_rent;
+    document.getElementById('room-form-deposit').value = r.security_deposit !== undefined ? r.security_deposit : 0;
     document.getElementById('room-form-reading').value = r.meter_initial_reading;
     document.getElementById('room-form-status').value = r.status;
 
@@ -1303,6 +1736,7 @@ async function handleRoomFormSubmit(e) {
     tenant_name: document.getElementById('room-form-tenant').value,
     tenant_phone: document.getElementById('room-form-phone').value,
     base_rent: Number(document.getElementById('room-form-rent').value),
+    security_deposit: Number(document.getElementById('room-form-deposit').value) || 0,
     meter_initial_reading: Number(document.getElementById('room-form-reading').value),
     status: document.getElementById('room-form-status').value
   };
