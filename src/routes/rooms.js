@@ -29,10 +29,10 @@ router.get('/', (req, res) => {
     query += ' ORDER BY r.room_number ASC';
     const rooms = db.prepare(query).all(...params);
 
-    // Calculate effective previous reading for each room
+    // Calculate effective previous reading for each room (last recorded reading + 1)
     const result = rooms.map(room => {
       const effectivePreviousReading = room.last_recorded_reading !== null && room.last_recorded_reading !== undefined
-        ? Number(room.last_recorded_reading)
+        ? Number(room.last_recorded_reading) + 1
         : Number(room.meter_initial_reading || 0);
 
       return {
@@ -61,7 +61,7 @@ router.get('/:id', (req, res) => {
 
     const latestBill = bills[0];
     const effectivePreviousReading = latestBill
-      ? Number(latestBill.current_reading)
+      ? Number(latestBill.current_reading) + 1
       : Number(room.meter_initial_reading || 0);
 
     res.json({

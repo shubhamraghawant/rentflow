@@ -64,8 +64,8 @@ test('OfflineStore calculates bill with current reading and rate factor', () => 
 
 test('OfflineStore automatically uses last bill current reading as next month previous reading', () => {
   const room = global.offlineStore.getRooms()[0]; // Room 101
-  // In previous test, we saved 1220 as current reading for 2026-11
-  assert.equal(room.effective_previous_reading, 1220);
+  // In previous test, we saved 1220 as current reading, so next month is 1220 + 1 = 1221
+  assert.equal(room.effective_previous_reading, 1221);
 });
 
 test('OfflineStore export and import backup operates properly', () => {

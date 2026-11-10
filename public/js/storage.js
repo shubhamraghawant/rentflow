@@ -123,7 +123,7 @@ class OfflineStore {
       let rooms = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS)) || [];
       const bills = this.getBills();
 
-      // Calculate effective previous reading from the latest bill
+      // Calculate effective previous reading from the latest bill (current reading + 1)
       rooms = rooms.map(room => {
         const roomBills = bills
           .filter(b => b.room_id === room.id)
@@ -131,7 +131,7 @@ class OfflineStore {
 
         const lastBill = roomBills[0];
         const effectivePrev = lastBill
-          ? Number(lastBill.current_reading)
+          ? Number(lastBill.current_reading) + 1
           : Number(room.meter_initial_reading || 0);
 
         return {

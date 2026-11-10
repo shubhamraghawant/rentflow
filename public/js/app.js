@@ -544,14 +544,17 @@ async function sendWhatsAppNotification(roomId) {
   const room = state.rooms.find(r => r.id === roomId);
   if (!room) return;
 
+  const prevInput = document.getElementById(`prev-reading-${roomId}`);
   const currInput = document.getElementById(`curr-reading-${roomId}`);
   if (!currInput || currInput.value.trim() === '') {
-    showToast(`Please enter Current Reading for Room ${room.room_number}`, 'error');
+    showToast(`Please enter New Reading for Room ${room.room_number}`, 'error');
     if (currInput) currInput.focus();
     return;
   }
 
-  // Auto-generate and save the bill
+  const currVal = Number(currInput.value);
+
+  // Auto-generate and save the bill for this month
   const bill = await saveRoomBill(roomId, true);
   if (!bill) return;
 
@@ -565,6 +568,21 @@ async function sendWhatsAppNotification(roomId) {
     window.open(whatsappUrl, '_blank');
     showToast(`Bill generated! Opening WhatsApp for ${room.tenant_name}...`, 'success');
   }
+
+  // Set previous reading to current reading + 1 for next month
+  const nextPrevReading = currVal + 1;
+  await API.updateRoom(roomId, { meter_initial_reading: nextPrevReading });
+  room.effective_previous_reading = nextPrevReading;
+
+  // Immediately reflect on the UI screen
+  if (prevInput) {
+    prevInput.value = nextPrevReading;
+  }
+  if (currInput) {
+    currInput.value = '';
+    currInput.placeholder = `e.g. ${nextPrevReading + 100}`;
+  }
+  handleReadingChange(roomId);
 }
 
 // Toggle Room Payment Status (Paid / Unpaid)
