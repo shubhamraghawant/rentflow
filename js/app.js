@@ -348,7 +348,7 @@ function renderRoomCards() {
 
             <!-- Current Reading -->
             <div class="input-field-group">
-              <label>Current Reading (Units)</label>
+              <label class="label-highlight">New Reading (Enter here)</label>
               <div class="reading-input-wrap">
                 <input
                   type="number"
@@ -357,7 +357,7 @@ function renderRoomCards() {
                   id="curr-reading-${room.id}"
                   value="${currReading}"
                   data-room-id="${room.id}"
-                  placeholder="e.g. ${Number(prevReading) + 120}"
+                  placeholder="Enter new meter units"
                   oninput="handleReadingChange(${room.id})"
                 />
               </div>
@@ -367,11 +367,11 @@ function renderRoomCards() {
           <!-- Live Light Bill Calculation Strip -->
           <div class="calc-summary-strip">
             <div>
-              <span>Units: </span>
+              <span>⚡ Units: </span>
               <span class="calc-units-badge" id="calc-units-${room.id}">${units} units</span>
             </div>
             <div>
-              <span>Rate: ₹${state.electricityRate}/u → </span>
+              <span>Light Bill: </span>
               <span class="calc-amount-badge" id="calc-elec-amt-${room.id}">₹${elecAmount}</span>
             </div>
           </div>
@@ -380,7 +380,7 @@ function renderRoomCards() {
         <!-- Rent & Other Row -->
         <div class="charges-row">
           <div class="input-field-group">
-            <label>Rent Amount (₹)</label>
+            <label>Room Rent (₹)</label>
             <input
               type="number"
               class="custom-input rent-amount-input"
@@ -391,7 +391,7 @@ function renderRoomCards() {
             />
           </div>
           <div class="input-field-group">
-            <label>Other / Maint (₹)</label>
+            <label>Other (₹)</label>
             <input
               type="number"
               class="custom-input other-charges-input"
@@ -405,7 +405,7 @@ function renderRoomCards() {
 
         <!-- Total Payable Strip -->
         <div class="card-total-bar">
-          <span class="card-total-label">Total Payable</span>
+          <span class="card-total-label">Total Amount</span>
           <span class="card-total-val" id="total-val-${room.id}">₹${totalAmount.toLocaleString('en-IN')}</span>
         </div>
 
@@ -417,7 +417,7 @@ function renderRoomCards() {
             onclick="sendWhatsAppNotification(${room.id})"
             title="Auto-generate bill and open WhatsApp directly"
           >
-            <span style="font-size: 1.15rem;">💬</span> WhatsApp Bill
+            <span style="font-size: 1.25rem;">💬</span> Send Bill on WhatsApp
           </button>
 
           <button
@@ -426,7 +426,7 @@ function renderRoomCards() {
             onclick="toggleRoomPaid(${room.id})"
             title="Toggle payment status between Paid and Unpaid"
           >
-            <span>${isBilled && bill.status === 'paid' ? '✅ Paid' : '💳 Mark as Paid'}</span>
+            <span>${isBilled && bill.status === 'paid' ? '✅ Paid (Click to Unmark)' : '⚪ Mark as Paid'}</span>
           </button>
         </div>
       </div>
@@ -961,10 +961,10 @@ function setupEventListeners() {
   const themeBtn = document.getElementById('theme-toggle-btn');
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
       const next = current === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
-      themeBtn.innerHTML = next === 'light' ? '<span>🌙</span> Dark Mode' : '<span>☀️</span> Light Mode';
+      themeBtn.innerHTML = next === 'light' ? '<span>🌙</span> Dark' : '<span>☀️</span> Light';
     });
   }
 
