@@ -81,3 +81,64 @@ test('OfflineStore export and import backup operates properly', () => {
   const restoredRooms = global.offlineStore.getRooms();
   assert.ok(restoredRooms.length >= 4);
 });
+
+test('OfflineStore handles split payment tracking (Rent Paid and Light Bill Paid on different days)', () => {
+  const room = global.offlineStore.getRooms()[0];
+  const bill = global.offlineStore.saveBill({
+    room_id: room.id,
+    billing_month: '2026-10',
+    previous_reading: 1000,
+    current_reading: 1100, // 100u => 1000
+    electricity_rate: 10,
+    rent_amount: 6500 // total = 7500
+  });
+
+  // 1. Pay rent on 5th
+  const rentUpdated = global.offlineStore.updateBillSplitStatus(bill.id, {
+    rent_status: 'paid',
+    rent_paid_date: '2026-10-05'
+  });
+  assert.equal(rentUpdated.rent_status, 'paid');
+  assert.equal(rentUpdated.rent_paid_date, '2026-10-05');
+  assert.equal(rentUpdated.light_status, 'unpaid');
+  assert.equal(rentUpdated.status, 'partial');
+  assert.equal(rentUpdated.paid_amount, 6500);
+
+  // 2. Pay light bill later on 12th
+  const allUpdated = global.offlineStore.updateBillSplitStatus(bill.id, {
+    light_status: 'paid',
+    light_paid_date: '2026-10-12'
+  });
+  assert.equal(allUpdated.rent_status, 'paid');
+  assert.equal(allUpdated.rent_paid_date, '2026-10-05');
+  assert.equal(allUpdated.light_status, 'paid');
+  assert.equal(allUpdated.light_paid_date, '2026-10-12');
+  assert.equal(allUpdated.status, 'paid');
+  assert.equal(allUpdated.paid_amount, 7500);
+});
+
+test('OfflineStore generates tenant settlement ledger and handles vacating tenant', () => {
+  const room = global.offlineStore.getRooms()[0]; // Rahul Sharma
+  const ledger = global.offlineStore.getTenantLedger(room.id);
+
+  assert.equal(ledger.tenant_name, 'Rahul Sharma');
+  assert.ok(ledger.bills.length >= 1);
+  assert.ok(ledger.total_billed > 0);
+
+  // Vacate and replace with new tenant
+  const updatedRoom = global.offlineStore.vacateTenant(room.id, {
+    tenant_name: 'Suresh Patil',
+    tenant_phone: '+919811223344',
+    base_rent: 7000,
+    meter_initial_reading: 1101
+  });
+
+  assert.equal(updatedRoom.tenant_name, 'Suresh Patil');
+  assert.equal(updatedRoom.tenant_phone, '+919811223344');
+  assert.equal(updatedRoom.base_rent, 7000);
+
+  // Historical bills still retain old tenant name
+  const pastBills = global.offlineStore.getBills({ room_id: room.id });
+  const oldBill = pastBills.find(b => b.billing_month === '2026-10');
+  assert.equal(oldBill.tenant_name, 'Rahul Sharma');
+});

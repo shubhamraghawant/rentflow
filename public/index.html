@@ -391,6 +391,115 @@
     </div>
   </div>
 
+  <!-- 3. Tenant Statement & Settlement Modal -->
+  <div class="modal-overlay" id="tenant-statement-modal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="statement-modal-title">Tenant Statement & Settlement</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" id="statement-modal-subtitle">Room details</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('tenant-statement-modal')">&times;</button>
+      </div>
+      <div class="modal-body" style="gap: 1.25rem;">
+        <!-- Summary Stats Ribbon -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem;">
+          <div style="background: var(--pastel-blue-bg); border: 1px solid var(--pastel-blue-border); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--pastel-blue-text); font-weight: 700; text-transform: uppercase;">Total Billed</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);" id="statement-total-billed">₹0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" id="statement-billed-breakdown">Rent + Light</div>
+          </div>
+          <div style="background: var(--pastel-green-bg); border: 1px solid var(--pastel-green-border); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--pastel-green-text); font-weight: 700; text-transform: uppercase;">Total Paid</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-green-text);" id="statement-total-paid">₹0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;" id="statement-paid-breakdown">Received</div>
+          </div>
+          <div style="background: var(--pastel-amber-bg); border: 1px solid var(--pastel-amber-border); padding: 0.85rem; border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--pastel-amber-text); font-weight: 700; text-transform: uppercase;">Balance Due</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: var(--pastel-amber-text);" id="statement-balance-due">₹0</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">Settlement Amount</div>
+          </div>
+        </div>
+
+        <!-- Month by Month Breakdown List -->
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 0.6rem; color: var(--text-main);">Monthly Records & Payment Dates</h4>
+          <div id="statement-months-list" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 340px; overflow-y: auto; padding-right: 4px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="flex-wrap: wrap; justify-content: space-between;">
+        <button type="button" class="btn-secondary" onclick="exportTenantCsv()">📥 Download Excel (CSV)</button>
+        <div style="display: flex; gap: 0.6rem;">
+          <button type="button" class="btn-secondary" onclick="closeModal('tenant-statement-modal')">Close</button>
+          <button type="button" class="btn-whatsapp" id="statement-btn-whatsapp" onclick="shareStatementWhatsApp()">💬 WhatsApp Statement</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Vacate / Change Tenant Modal -->
+  <div class="modal-overlay" id="vacate-tenant-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">🚪 Change or Vacate Tenant</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;" id="vacate-modal-subtitle">Room details</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('vacate-tenant-modal')">&times;</button>
+      </div>
+      <form id="vacate-tenant-form">
+        <input type="hidden" id="vacate-room-id">
+        <div class="modal-body">
+          <!-- Settlement prompt banner -->
+          <div style="background: var(--pastel-blue-bg); border: 1px solid var(--pastel-blue-border); padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <div style="font-weight: 700; color: var(--pastel-blue-text); font-size: 0.92rem;">Leaving Tenant Settle Records</div>
+              <div style="font-size: 0.82rem; color: var(--text-muted);">Check all paid and pending rent/light bill records before departure.</div>
+            </div>
+            <button type="button" class="btn-secondary" style="font-size: 0.82rem; padding: 0.4rem 0.8rem;" onclick="viewLeavingTenantStatement()">📋 View Statement</button>
+          </div>
+
+          <div class="input-field-group">
+            <label>Action for this room</label>
+            <select id="vacate-action-type" class="custom-input" onchange="toggleVacateFormMode()">
+              <option value="replace">Add New Tenant Details</option>
+              <option value="vacant">Mark Room as Vacant (Clear Tenant Details)</option>
+            </select>
+          </div>
+
+          <div id="new-tenant-fields" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="input-field-group">
+              <label>New Tenant Full Name *</label>
+              <input type="text" id="vacate-new-name" class="custom-input" placeholder="e.g. Suresh Patil">
+            </div>
+
+            <div class="input-field-group">
+              <label>New Tenant WhatsApp / Phone Number *</label>
+              <input type="tel" id="vacate-new-phone" class="custom-input" placeholder="e.g. +91 9876543210">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="input-field-group">
+                <label>New Base Rent (₹)</label>
+                <input type="number" id="vacate-new-rent" class="custom-input" placeholder="6000">
+              </div>
+              <div class="input-field-group">
+                <label>Initial Meter Reading</label>
+                <input type="number" id="vacate-new-reading" class="custom-input" placeholder="Current meter units">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('vacate-tenant-modal')">Cancel</button>
+          <button type="submit" class="btn-primary">Confirm & Update Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 3. Mobile Install Instructions Modal -->
   <div class="modal-overlay" id="install-guide-modal">
     <div class="modal-card">

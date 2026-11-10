@@ -232,8 +232,8 @@ router.post('/', (req, res) => {
       INSERT INTO bills (
         room_id, billing_month, previous_reading, current_reading, units_consumed,
         electricity_rate, electricity_amount, rent_amount, other_charges, other_charges_desc,
-        discount, total_amount, due_date, notes, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        discount, total_amount, due_date, notes, tenant_name, tenant_phone, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       ON CONFLICT(room_id, billing_month) DO UPDATE SET
         previous_reading = excluded.previous_reading,
         current_reading = excluded.current_reading,
@@ -247,6 +247,8 @@ router.post('/', (req, res) => {
         total_amount = excluded.total_amount,
         due_date = excluded.due_date,
         notes = excluded.notes,
+        tenant_name = excluded.tenant_name,
+        tenant_phone = excluded.tenant_phone,
         updated_at = CURRENT_TIMESTAMP
     `);
 
@@ -264,7 +266,9 @@ router.post('/', (req, res) => {
       disc,
       total,
       finalDueDate,
-      notes
+      notes,
+      room.tenant_name,
+      room.tenant_phone
     );
 
     const savedBill = db.prepare(`
@@ -288,6 +292,71 @@ router.post('/', (req, res) => {
         sms_url: smsUrl
       }
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Update bill split payment status (Rent Paid / Light Bill Paid)
+router.patch('/:id/split-status', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rent_status, light_status, rent_paid_date, light_paid_date } = req.body;
+
+    const bill = db.prepare('SELECT * FROM bills WHERE id = ?').get(id);
+    if (!bill) {
+      return res.status(404).json({ success: false, error: 'Bill not found' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const newRentStatus = rent_status !== undefined ? rent_status : (bill.rent_status || 'unpaid');
+    const newLightStatus = light_status !== undefined ? light_status : (bill.light_status || 'unpaid');
+
+    const newRentDate = newRentStatus === 'paid'
+      ? (rent_paid_date || bill.rent_paid_date || today)
+      : null;
+
+    const newLightDate = newLightStatus === 'paid'
+      ? (light_paid_date || bill.light_paid_date || today)
+      : null;
+
+    let overallStatus = 'unpaid';
+    let paidAmt = 0;
+    if (newRentStatus === 'paid' && newLightStatus === 'paid') {
+      overallStatus = 'paid';
+      paidAmt = bill.total_amount;
+    } else if (newRentStatus === 'paid') {
+      overallStatus = 'partial';
+      paidAmt = bill.rent_amount;
+    } else if (newLightStatus === 'paid') {
+      overallStatus = 'partial';
+      paidAmt = bill.electricity_amount;
+    }
+
+    db.prepare(`
+      UPDATE bills SET
+        rent_status = ?,
+        rent_paid_date = ?,
+        light_status = ?,
+        light_paid_date = ?,
+        status = ?,
+        paid_amount = ?,
+        paid_date = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(
+      newRentStatus,
+      newRentDate,
+      newLightStatus,
+      newLightDate,
+      overallStatus,
+      paidAmt,
+      (overallStatus === 'paid' ? (newLightDate || newRentDate) : null),
+      id
+    );
+
+    const updated = db.prepare('SELECT * FROM bills WHERE id = ?').get(id);
+    res.json({ success: true, message: 'Payment status updated', bill: updated });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

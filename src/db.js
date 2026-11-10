@@ -54,6 +54,12 @@ function initDb() {
       discount REAL DEFAULT 0,
       total_amount REAL NOT NULL,
       status TEXT DEFAULT 'unpaid',
+      rent_status TEXT DEFAULT 'unpaid',
+      rent_paid_date TEXT,
+      light_status TEXT DEFAULT 'unpaid',
+      light_paid_date TEXT,
+      tenant_name TEXT DEFAULT '',
+      tenant_phone TEXT DEFAULT '',
       paid_amount REAL DEFAULT 0,
       paid_date TEXT,
       due_date TEXT,
@@ -77,6 +83,27 @@ function initDb() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Column migrations for bills table
+  const billCols = db.pragma('table_info(bills)').map(c => c.name);
+  if (!billCols.includes('rent_status')) {
+    db.exec("ALTER TABLE bills ADD COLUMN rent_status TEXT DEFAULT 'unpaid';");
+  }
+  if (!billCols.includes('rent_paid_date')) {
+    db.exec("ALTER TABLE bills ADD COLUMN rent_paid_date TEXT;");
+  }
+  if (!billCols.includes('light_status')) {
+    db.exec("ALTER TABLE bills ADD COLUMN light_status TEXT DEFAULT 'unpaid';");
+  }
+  if (!billCols.includes('light_paid_date')) {
+    db.exec("ALTER TABLE bills ADD COLUMN light_paid_date TEXT;");
+  }
+  if (!billCols.includes('tenant_name')) {
+    db.exec("ALTER TABLE bills ADD COLUMN tenant_name TEXT DEFAULT '';");
+  }
+  if (!billCols.includes('tenant_phone')) {
+    db.exec("ALTER TABLE bills ADD COLUMN tenant_phone TEXT DEFAULT '';");
+  }
 
   // Default settings seed
   const defaultSettings = [

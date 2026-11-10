@@ -241,16 +241,44 @@ class OfflineStore {
       // Enrich bills with room data and pre-generated URLs
       bills = bills.map(bill => {
         const room = rooms.find(r => r.id === bill.room_id) || {};
-        const formattedMessage = this.buildNotificationMessage(bill, room, settings);
+        const tenantName = bill.tenant_name || room.tenant_name || 'Tenant';
+        const tenantPhone = bill.tenant_phone || room.tenant_phone || '';
+
+        // Ensure rent_status and light_status are initialized
+        let rentStatus = bill.rent_status;
+        let lightStatus = bill.light_status;
+        if (!rentStatus && !lightStatus) {
+          if (bill.status === 'paid') {
+            rentStatus = 'paid';
+            lightStatus = 'paid';
+          } else {
+            rentStatus = 'unpaid';
+            lightStatus = 'unpaid';
+          }
+        } else {
+          rentStatus = rentStatus || 'unpaid';
+          lightStatus = lightStatus || 'unpaid';
+        }
+
+        const roomInfo = {
+          ...room,
+          tenant_name: tenantName,
+          tenant_phone: tenantPhone
+        };
+        const formattedMessage = this.buildNotificationMessage(bill, roomInfo, settings);
         return {
           ...bill,
-          room_number: room.room_number || '',
+          rent_status: rentStatus,
+          rent_paid_date: bill.rent_paid_date || (rentStatus === 'paid' ? (bill.paid_date || '') : null),
+          light_status: lightStatus,
+          light_paid_date: bill.light_paid_date || (lightStatus === 'paid' ? (bill.paid_date || '') : null),
+          room_number: room.room_number || bill.room_number || '',
           floor: room.floor || '',
-          tenant_name: room.tenant_name || '',
-          tenant_phone: room.tenant_phone || '',
+          tenant_name: tenantName,
+          tenant_phone: tenantPhone,
           formatted_message: formattedMessage,
-          whatsapp_url: this.generateWhatsAppUrl(room.tenant_phone, formattedMessage),
-          sms_url: this.generateSmsUrl(room.tenant_phone, formattedMessage)
+          whatsapp_url: this.generateWhatsAppUrl(tenantPhone, formattedMessage),
+          sms_url: this.generateSmsUrl(tenantPhone, formattedMessage)
         };
       });
 
@@ -302,6 +330,25 @@ class OfflineStore {
       b => b.room_id === Number(billData.room_id) && b.billing_month === billData.billing_month
     );
 
+    const existingBill = existingIndex >= 0 ? bills[existingIndex] : null;
+    const rentStatus = existingBill ? (existingBill.rent_status || 'unpaid') : 'unpaid';
+    const rentPaidDate = existingBill ? existingBill.rent_paid_date : null;
+    const lightStatus = existingBill ? (existingBill.light_status || 'unpaid') : 'unpaid';
+    const lightPaidDate = existingBill ? existingBill.light_paid_date : null;
+
+    let overallStatus = 'unpaid';
+    let paidAmount = 0;
+    if (rentStatus === 'paid' && lightStatus === 'paid') {
+      overallStatus = 'paid';
+      paidAmount = total;
+    } else if (rentStatus === 'paid') {
+      overallStatus = 'partial';
+      paidAmount = rent;
+    } else if (lightStatus === 'paid') {
+      overallStatus = 'partial';
+      paidAmount = elecAmount;
+    }
+
     const savedBill = {
       id: existingIndex >= 0 ? bills[existingIndex].id : (bills.length > 0 ? Math.max(...bills.map(b => b.id)) + 1 : 1),
       room_id: Number(billData.room_id),
@@ -315,7 +362,15 @@ class OfflineStore {
       other_charges: other,
       total_amount: total,
       due_date: dueDate,
-      status: existingIndex >= 0 ? bills[existingIndex].status : 'unpaid',
+      rent_status: rentStatus,
+      rent_paid_date: rentPaidDate,
+      light_status: lightStatus,
+      light_paid_date: lightPaidDate,
+      status: overallStatus,
+      paid_amount: paidAmount,
+      paid_date: overallStatus === 'paid' ? (lightPaidDate || rentPaidDate) : null,
+      tenant_name: room.tenant_name,
+      tenant_phone: room.tenant_phone,
       notification_sent: existingIndex >= 0 ? bills[existingIndex].notification_sent : 0,
       updated_at: new Date().toISOString()
     };
@@ -345,13 +400,134 @@ class OfflineStore {
     const index = bills.findIndex(b => b.id === Number(id));
     if (index === -1) throw new Error('Bill not found');
 
+    const today = new Date().toISOString().split('T')[0];
     bills[index].status = status;
     bills[index].paid_amount = status === 'paid' ? bills[index].total_amount : (paidAmount || 0);
-    bills[index].paid_date = status === 'paid' ? new Date().toISOString().split('T')[0] : null;
+    bills[index].paid_date = status === 'paid' ? today : null;
+    bills[index].rent_status = status === 'paid' ? 'paid' : 'unpaid';
+    bills[index].rent_paid_date = status === 'paid' ? today : null;
+    bills[index].light_status = status === 'paid' ? 'paid' : 'unpaid';
+    bills[index].light_paid_date = status === 'paid' ? today : null;
     bills[index].updated_at = new Date().toISOString();
 
     localStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(bills));
     return bills[index];
+  }
+
+  updateBillSplitStatus(id, splitData) {
+    const bills = JSON.parse(localStorage.getItem(STORAGE_KEYS.BILLS)) || [];
+    const index = bills.findIndex(b => b.id === Number(id));
+    if (index === -1) throw new Error('Bill not found');
+
+    const bill = bills[index];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (splitData.rent_status !== undefined) {
+      bill.rent_status = splitData.rent_status;
+      bill.rent_paid_date = splitData.rent_status === 'paid' ? (splitData.rent_paid_date || today) : null;
+    }
+    if (splitData.light_status !== undefined) {
+      bill.light_status = splitData.light_status;
+      bill.light_paid_date = splitData.light_status === 'paid' ? (splitData.light_paid_date || today) : null;
+    }
+
+    const isRentPaid = bill.rent_status === 'paid';
+    const isLightPaid = bill.light_status === 'paid';
+
+    if (isRentPaid && isLightPaid) {
+      bill.status = 'paid';
+      bill.paid_amount = bill.total_amount;
+      bill.paid_date = bill.light_paid_date || bill.rent_paid_date || today;
+    } else if (isRentPaid) {
+      bill.status = 'partial';
+      bill.paid_amount = Number(bill.rent_amount || 0);
+      bill.paid_date = null;
+    } else if (isLightPaid) {
+      bill.status = 'partial';
+      bill.paid_amount = Number(bill.electricity_amount || 0);
+      bill.paid_date = null;
+    } else {
+      bill.status = 'unpaid';
+      bill.paid_amount = 0;
+      bill.paid_date = null;
+    }
+
+    bill.updated_at = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(bills));
+    return bill;
+  }
+
+  getTenantLedger(roomId) {
+    const rooms = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS)) || [];
+    const room = rooms.find(r => r.id === Number(roomId));
+    const allBills = this.getBills({ room_id: Number(roomId) });
+
+    let totalBilled = 0;
+    let totalPaid = 0;
+    let totalRentBilled = 0;
+    let totalRentPaid = 0;
+    let totalLightBilled = 0;
+    let totalLightPaid = 0;
+
+    for (const b of allBills) {
+      totalBilled += Number(b.total_amount || 0);
+      totalRentBilled += Number(b.rent_amount || 0);
+      totalLightBilled += Number(b.electricity_amount || 0);
+
+      if (b.rent_status === 'paid') totalRentPaid += Number(b.rent_amount || 0);
+      if (b.light_status === 'paid') totalLightPaid += Number(b.electricity_amount || 0);
+      totalPaid += Number(b.paid_amount || 0);
+    }
+
+    const balanceDue = totalBilled - totalPaid;
+
+    return {
+      room,
+      tenant_name: room ? room.tenant_name : (allBills[0]?.tenant_name || 'Tenant'),
+      tenant_phone: room ? room.tenant_phone : (allBills[0]?.tenant_phone || ''),
+      bills: allBills,
+      total_billed: Math.round(totalBilled),
+      total_paid: Math.round(totalPaid),
+      total_rent_billed: Math.round(totalRentBilled),
+      total_rent_paid: Math.round(totalRentPaid),
+      total_light_billed: Math.round(totalLightBilled),
+      total_light_paid: Math.round(totalLightPaid),
+      balance_due: Math.round(balanceDue)
+    };
+  }
+
+  vacateTenant(roomId, newTenantData = null) {
+    const rooms = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS)) || [];
+    const index = rooms.findIndex(r => r.id === Number(roomId));
+    if (index === -1) throw new Error('Room not found');
+
+    const room = rooms[index];
+
+    if (newTenantData && newTenantData.tenant_name && newTenantData.tenant_name.trim()) {
+      rooms[index] = {
+        ...room,
+        tenant_name: newTenantData.tenant_name.trim(),
+        tenant_phone: (newTenantData.tenant_phone || '').trim(),
+        base_rent: newTenantData.base_rent ? Number(newTenantData.base_rent) : room.base_rent,
+        meter_initial_reading: newTenantData.meter_initial_reading !== undefined && newTenantData.meter_initial_reading !== ''
+          ? Number(newTenantData.meter_initial_reading)
+          : room.meter_initial_reading,
+        status: 'occupied',
+        move_in_date: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString()
+      };
+    } else {
+      rooms[index] = {
+        ...room,
+        tenant_name: 'Vacant',
+        tenant_phone: '',
+        status: 'vacant',
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(rooms));
+    return rooms[index];
   }
 
   deleteBill(id) {

@@ -204,6 +204,57 @@ router.put('/:id', (req, res) => {
   }
 });
 
+// Vacate / Change Tenant
+router.post('/:id/vacate', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { new_tenant_name, new_tenant_phone, new_base_rent, new_meter_reading, notes } = req.body;
+
+    const room = db.prepare('SELECT * FROM rooms WHERE id = ?').get(id);
+    if (!room) {
+      return res.status(404).json({ success: false, error: 'Room not found' });
+    }
+
+    if (new_tenant_name && new_tenant_name.trim()) {
+      // Replaced with new tenant
+      db.prepare(`
+        UPDATE rooms SET
+          tenant_name = ?,
+          tenant_phone = ?,
+          base_rent = COALESCE(?, base_rent),
+          meter_initial_reading = COALESCE(?, meter_initial_reading),
+          move_in_date = CURRENT_DATE,
+          status = 'occupied',
+          notes = COALESCE(?, notes),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(
+        new_tenant_name.trim(),
+        (new_tenant_phone || '').trim(),
+        new_base_rent !== undefined ? Number(new_base_rent) : null,
+        new_meter_reading !== undefined ? Number(new_meter_reading) : null,
+        notes || '',
+        id
+      );
+    } else {
+      // Mark as vacant / clear tenant details
+      db.prepare(`
+        UPDATE rooms SET
+          tenant_name = 'Vacant',
+          tenant_phone = '',
+          status = 'vacant',
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(id);
+    }
+
+    const updated = db.prepare('SELECT * FROM rooms WHERE id = ?').get(id);
+    res.json({ success: true, message: 'Tenant vacated/updated successfully', room: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // DELETE room
 router.delete('/:id', (req, res) => {
   try {
