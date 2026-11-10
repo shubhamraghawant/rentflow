@@ -402,68 +402,25 @@ function renderRoomCards() {
           <span class="card-total-val" id="total-val-${room.id}">₹${totalAmount.toLocaleString('en-IN')}</span>
         </div>
 
-        <!-- Action Buttons Grid -->
-        <div class="card-actions-grid">
-          <!-- WhatsApp Button -->
+        <!-- Action Buttons: WhatsApp Bill (Auto-generates bill) & Mark as Paid -->
+        <div class="card-actions-single">
           <button
             type="button"
-            class="btn-whatsapp"
+            class="btn-whatsapp-full"
             onclick="sendWhatsAppNotification(${room.id})"
-            title="Send pre-filled Bill invoice directly via WhatsApp"
+            title="Auto-generate bill and open WhatsApp directly"
           >
-            <span>💬</span> WhatsApp Bill
-          </button>
-
-          <!-- SMS Button -->
-          <button
-            type="button"
-            class="btn-sms"
-            onclick="sendSmsNotification(${room.id})"
-            title="Send bill notification via SMS"
-          >
-            <span>📱</span> SMS Bill
-          </button>
-        </div>
-
-        <!-- Secondary Actions Row -->
-        <div class="btn-action-row">
-          <button
-            type="button"
-            class="btn-sm-action save"
-            onclick="saveRoomBill(${room.id})"
-            title="Save bill calculation to database"
-          >
-            💾 Save Bill
+            <span style="font-size: 1.15rem;">💬</span> WhatsApp Bill
           </button>
 
           <button
             type="button"
-            class="btn-sm-action"
-            onclick="copyNoticeToClipboard(${room.id})"
-            title="Copy WhatsApp formatted notice to clipboard"
+            class="btn-paid-toggle ${isBilled && bill.status === 'paid' ? 'is-paid' : ''}"
+            onclick="toggleRoomPaid(${room.id})"
+            title="Toggle payment status between Paid and Unpaid"
           >
-            📋 Copy
+            <span>${isBilled && bill.status === 'paid' ? '✅ Paid' : '💳 Mark as Paid'}</span>
           </button>
-
-          <button
-            type="button"
-            class="btn-sm-action"
-            onclick="previewNoticeModal(${room.id})"
-            title="View full notice message preview & print invoice"
-          >
-            👁️ Preview / Print
-          </button>
-
-          ${isBilled ? `
-            <button
-              type="button"
-              class="btn-sm-action ${bill.status === 'paid' ? 'paid' : ''}"
-              onclick="toggleBillStatus(${bill.id}, '${bill.status === 'paid' ? 'unpaid' : 'paid'}')"
-              title="Toggle payment status"
-            >
-              ${bill.status === 'paid' ? '✓ Paid' : 'Mark Paid'}
-            </button>
-          ` : ''}
         </div>
       </div>
     `;
@@ -575,20 +532,23 @@ async function saveRoomBill(roomId, silent = false) {
   }
 }
 
-// WhatsApp Notification Direct Trigger
+// WhatsApp Notification Direct Trigger (Auto-generates bill & opens WhatsApp)
 async function sendWhatsAppNotification(roomId) {
-  // First ensure latest bill details are saved
-  let bill = state.billsMap[roomId];
-  const currInput = document.getElementById(`curr-reading-${roomId}`);
+  const room = state.rooms.find(r => r.id === roomId);
+  if (!room) return;
 
-  if (!bill || (currInput && Number(currInput.value) !== Number(bill.current_reading))) {
-    bill = await saveRoomBill(roomId, true);
-    if (!bill) return;
+  const currInput = document.getElementById(`curr-reading-${roomId}`);
+  if (!currInput || currInput.value.trim() === '') {
+    showToast(`Please enter Current Reading for Room ${room.room_number}`, 'error');
+    if (currInput) currInput.focus();
+    return;
   }
 
-  const room = state.rooms.find(r => r.id === roomId);
-  const preview = await API.getNoticePreview(bill.id);
+  // Auto-generate and save the bill
+  const bill = await saveRoomBill(roomId, true);
+  if (!bill) return;
 
+  const preview = await API.getNoticePreview(bill.id);
   if (preview.success) {
     const whatsappUrl = preview.data.whatsapp_url;
     // Record dispatch in background
@@ -596,8 +556,31 @@ async function sendWhatsAppNotification(roomId) {
 
     // Open WhatsApp Web or Mobile WhatsApp App
     window.open(whatsappUrl, '_blank');
-    showToast(`Opening WhatsApp for ${room.tenant_name}...`, 'success');
+    showToast(`Bill generated! Opening WhatsApp for ${room.tenant_name}...`, 'success');
   }
+}
+
+// Toggle Room Payment Status (Paid / Unpaid)
+async function toggleRoomPaid(roomId) {
+  const room = state.rooms.find(r => r.id === roomId);
+  if (!room) return;
+
+  let bill = state.billsMap[roomId];
+  const currInput = document.getElementById(`curr-reading-${roomId}`);
+
+  // If bill hasn't been saved yet, auto-save it first
+  if (!bill || (currInput && Number(currInput.value) !== Number(bill.current_reading))) {
+    if (!currInput || currInput.value.trim() === '') {
+      showToast(`Please enter Current Reading for Room ${room.room_number} first`, 'error');
+      if (currInput) currInput.focus();
+      return;
+    }
+    bill = await saveRoomBill(roomId, true);
+    if (!bill) return;
+  }
+
+  const nextStatus = bill.status === 'paid' ? 'unpaid' : 'paid';
+  await toggleBillStatus(bill.id, nextStatus);
 }
 
 // SMS Notification Trigger
