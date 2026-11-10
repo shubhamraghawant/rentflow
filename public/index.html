@@ -154,11 +154,30 @@
               <h2 class="section-title" data-i18n="section_billing_title">⚡ Monthly Light & Rent Billing</h2>
               <p class="section-desc" data-i18n="section_billing_desc">Enter meter readings. Units & electricity bill calculate automatically.</p>
             </div>
+            <!-- View Mode Toggle: Side by Side Cards vs Vertical Stack List -->
+            <div class="layout-toggle-group" id="layout-toggle-group">
+              <button type="button" class="btn-layout-toggle active" id="btn-layout-side" onclick="setLayoutMode('side')" title="Side-by-side cards">
+                <span>↔️</span> <span data-i18n="layout_side_by_side">Side by Side</span>
+              </button>
+              <button type="button" class="btn-layout-toggle" id="btn-layout-stack" onclick="setLayoutMode('stack')" title="Vertical stacked list">
+                <span>↕️</span> <span data-i18n="layout_vertical_list">List</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Room Billing Cards Grid -->
-          <div class="room-bills-grid" id="room-bills-container">
+          <!-- Room Quick Navigation Bar (Instant Room Jump Pills) -->
+          <div class="room-nav-strip" id="room-nav-strip">
+            <!-- Dynamic room navigation pills (Room A, Room B, 1BHK, Single Room) -->
+          </div>
+
+          <!-- Room Billing Cards Grid (Side-by-Side Horizontal Carousel by default) -->
+          <div class="room-bills-grid side-by-side" id="room-bills-container">
             <!-- Dynamically populated room cards -->
+          </div>
+
+          <!-- Carousel Dots Indicator (Mobile) -->
+          <div class="carousel-dots-indicator" id="carousel-dots-indicator">
+            <!-- Dynamic dots -->
           </div>
         </section>
 
