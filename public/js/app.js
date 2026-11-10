@@ -320,8 +320,8 @@ function renderRoomCards() {
       }
     }
 
-    const rentDateLabel = isRentPaid && bill?.rent_paid_date ? ` (${formatShortDate(bill.rent_paid_date)})` : '';
-    const lightDateLabel = isLightPaid && bill?.light_paid_date ? ` (${formatShortDate(bill.light_paid_date)})` : '';
+    const rentDateLabel = isRentPaid && bill?.rent_paid_date ? ` (${formatFullDate(bill.rent_paid_date)})` : '';
+    const lightDateLabel = isLightPaid && bill?.light_paid_date ? ` (${formatFullDate(bill.light_paid_date)})` : '';
 
     return `
       <div class="bill-card ${isBilled ? 'has-bill' : 'pending-bill'}" id="card-room-${room.id}">
@@ -617,6 +617,38 @@ function formatShortDate(dateStr) {
   return dateStr;
 }
 
+function formatFullDate(dateStr) {
+  if (!dateStr) return '';
+  if (dateStr.includes(' ')) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+  }
+  return dateStr;
+}
+
+function formatLongDate(dateStr) {
+  if (!dateStr) return '';
+  if (dateStr.includes(' ') && isNaN(dateStr[0])) return dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  }
+  return dateStr;
+}
+
 // Toggle Split Payment Status (Rent Paid or Light Bill Paid)
 async function toggleSplitPaid(roomId, type) {
   const room = state.rooms.find(r => r.id === roomId);
@@ -730,8 +762,8 @@ async function openTenantStatementModal(roomId) {
     listContainer.innerHTML = ledger.bills.map(b => {
       const isRentPaid = b.rent_status === 'paid';
       const isLightPaid = b.light_status === 'paid';
-      const rentPaidDate = b.rent_paid_date ? formatShortDate(b.rent_paid_date) : '';
-      const lightPaidDate = b.light_paid_date ? formatShortDate(b.light_paid_date) : '';
+      const rentPaidDate = b.rent_paid_date ? formatLongDate(b.rent_paid_date) : '';
+      const lightPaidDate = b.light_paid_date ? formatLongDate(b.light_paid_date) : '';
 
       return `
         <div style="background: var(--bg-card); border: 1.5px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem;">
@@ -748,7 +780,7 @@ async function openTenantStatementModal(roomId) {
               <div style="color: var(--text-dim); font-size: 0.76rem;">⚡ Light (${b.units_consumed}u @ ₹${b.electricity_rate})</div>
               <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.electricity_amount).toLocaleString('en-IN')}</div>
               <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isLightPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
-                ${isLightPaid ? `✅ Paid ${lightPaidDate}` : '⚪ Due'}
+                ${isLightPaid ? `✅ Paid on ${lightPaidDate}` : '⚪ Due'}
               </div>
             </div>
 
@@ -757,7 +789,7 @@ async function openTenantStatementModal(roomId) {
               <div style="color: var(--text-dim); font-size: 0.76rem;">🏠 Room Rent</div>
               <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.rent_amount).toLocaleString('en-IN')}</div>
               <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isRentPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
-                ${isRentPaid ? `✅ Paid ${rentPaidDate}` : '⚪ Due'}
+                ${isRentPaid ? `✅ Paid on ${rentPaidDate}` : '⚪ Due'}
               </div>
             </div>
           </div>
@@ -793,8 +825,8 @@ function shareStatementWhatsApp() {
   for (const b of l.bills) {
     const isRentPaid = b.rent_status === 'paid';
     const isLightPaid = b.light_status === 'paid';
-    const rentDate = b.rent_paid_date ? ` (${formatShortDate(b.rent_paid_date)})` : '';
-    const lightDate = b.light_paid_date ? ` (${formatShortDate(b.light_paid_date)})` : '';
+    const rentDate = b.rent_paid_date ? ` (Paid on ${formatLongDate(b.rent_paid_date)})` : '';
+    const lightDate = b.light_paid_date ? ` (Paid on ${formatLongDate(b.light_paid_date)})` : '';
 
     msg += `• *${formatBillingMonth(b.billing_month)}*: Total ₹${b.total_amount.toLocaleString('en-IN')}\n`;
     msg += `   - Rent: ₹${b.rent_amount.toLocaleString('en-IN')} [${isRentPaid ? '✅ Paid' + rentDate : '⚪ Due'}]\n`;
@@ -824,8 +856,8 @@ function exportTenantCsv() {
   for (const b of l.bills) {
     const isRentPaid = b.rent_status === 'paid';
     const isLightPaid = b.light_status === 'paid';
-    const rentPaidDate = b.rent_paid_date || (isRentPaid ? (b.paid_date || '') : '');
-    const lightPaidDate = b.light_paid_date || (isLightPaid ? (b.paid_date || '') : '');
+    const rentPaidDate = b.rent_paid_date ? formatLongDate(b.rent_paid_date) : (isRentPaid ? (formatLongDate(b.paid_date) || '') : '');
+    const lightPaidDate = b.light_paid_date ? formatLongDate(b.light_paid_date) : (isLightPaid ? (formatLongDate(b.paid_date) || '') : '');
     const totalPaid = b.paid_amount !== undefined ? b.paid_amount : (b.status === 'paid' ? b.total_amount : 0);
     csv += `"${b.billing_month}","${l.room?.room_number || b.room_number}","${b.tenant_name || l.tenant_name}","${b.tenant_phone || l.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
   }
@@ -1218,8 +1250,8 @@ async function exportHistoryCsv() {
     for (const b of bills) {
       const isRentPaid = b.rent_status === 'paid';
       const isLightPaid = b.light_status === 'paid';
-      const rentPaidDate = b.rent_paid_date || (isRentPaid ? (b.paid_date || '') : '');
-      const lightPaidDate = b.light_paid_date || (isLightPaid ? (b.paid_date || '') : '');
+      const rentPaidDate = b.rent_paid_date ? formatLongDate(b.rent_paid_date) : (isRentPaid ? (formatLongDate(b.paid_date) || '') : '');
+      const lightPaidDate = b.light_paid_date ? formatLongDate(b.light_paid_date) : (isLightPaid ? (formatLongDate(b.paid_date) || '') : '');
       const totalPaid = b.paid_amount !== undefined ? b.paid_amount : (b.status === 'paid' ? b.total_amount : 0);
       csv += `"${b.billing_month}","${b.room_number}","${b.tenant_name}","${b.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
     }

@@ -414,21 +414,69 @@ class OfflineStore {
     return bills[index];
   }
 
+  recordPaymentLog(entry) {
+    try {
+      const logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGS)) || [];
+      logs.unshift({
+        id: Date.now(),
+        ...entry
+      });
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs.slice(0, 200)));
+    } catch (e) {
+      console.warn('Failed to record payment log:', e);
+    }
+  }
+
   updateBillSplitStatus(id, splitData) {
     const bills = JSON.parse(localStorage.getItem(STORAGE_KEYS.BILLS)) || [];
+    const rooms = JSON.parse(localStorage.getItem(STORAGE_KEYS.ROOMS)) || [];
     const index = bills.findIndex(b => b.id === Number(id));
     if (index === -1) throw new Error('Bill not found');
 
     const bill = bills[index];
-    const today = new Date().toISOString().split('T')[0];
+    const room = rooms.find(r => r.id === bill.room_id) || {};
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const fullDate = now.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 
     if (splitData.rent_status !== undefined) {
       bill.rent_status = splitData.rent_status;
       bill.rent_paid_date = splitData.rent_status === 'paid' ? (splitData.rent_paid_date || today) : null;
+      bill.rent_paid_full_date = splitData.rent_status === 'paid' ? (splitData.rent_paid_full_date || fullDate) : null;
+
+      // Log full payment audit record
+      this.recordPaymentLog({
+        bill_id: bill.id,
+        room_id: bill.room_id,
+        room_number: room.room_number || bill.room_number,
+        tenant_name: bill.tenant_name || room.tenant_name,
+        type: 'Rent',
+        status: splitData.rent_status,
+        amount: bill.rent_amount,
+        paid_date: bill.rent_paid_date,
+        paid_full_date: bill.rent_paid_full_date,
+        timestamp: now.toISOString()
+      });
     }
+
     if (splitData.light_status !== undefined) {
       bill.light_status = splitData.light_status;
       bill.light_paid_date = splitData.light_status === 'paid' ? (splitData.light_paid_date || today) : null;
+      bill.light_paid_full_date = splitData.light_status === 'paid' ? (splitData.light_paid_full_date || fullDate) : null;
+
+      // Log full payment audit record
+      this.recordPaymentLog({
+        bill_id: bill.id,
+        room_id: bill.room_id,
+        room_number: room.room_number || bill.room_number,
+        tenant_name: bill.tenant_name || room.tenant_name,
+        type: 'Light Bill',
+        status: splitData.light_status,
+        amount: bill.electricity_amount,
+        paid_date: bill.light_paid_date,
+        paid_full_date: bill.light_paid_full_date,
+        timestamp: now.toISOString()
+      });
     }
 
     const isRentPaid = bill.rent_status === 'paid';
@@ -452,7 +500,7 @@ class OfflineStore {
       bill.paid_date = null;
     }
 
-    bill.updated_at = new Date().toISOString();
+    bill.updated_at = now.toISOString();
     localStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(bills));
     return bill;
   }

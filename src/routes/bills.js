@@ -355,6 +355,21 @@ router.patch('/:id/split-status', (req, res) => {
       id
     );
 
+    // Audit log full date payment record
+    const room = db.prepare('SELECT room_number, tenant_name, tenant_phone FROM rooms WHERE id = ?').get(bill.room_id);
+    if (newRentStatus === 'paid' && bill.rent_status !== 'paid') {
+      db.prepare(`
+        INSERT INTO notification_logs (bill_id, room_number, tenant_name, phone, channel, message, status)
+        VALUES (?, ?, ?, ?, 'payment', ?, 'logged')
+      `).run(id, room ? room.room_number : '', room ? room.tenant_name : '', room ? room.tenant_phone : '', `Rent paid on ${newRentDate}`);
+    }
+    if (newLightStatus === 'paid' && bill.light_status !== 'paid') {
+      db.prepare(`
+        INSERT INTO notification_logs (bill_id, room_number, tenant_name, phone, channel, message, status)
+        VALUES (?, ?, ?, ?, 'payment', ?, 'logged')
+      `).run(id, room ? room.room_number : '', room ? room.tenant_name : '', room ? room.tenant_phone : '', `Light bill paid on ${newLightDate}`);
+    }
+
     const updated = db.prepare('SELECT * FROM bills WHERE id = ?').get(id);
     res.json({ success: true, message: 'Payment status updated', bill: updated });
   } catch (err) {
