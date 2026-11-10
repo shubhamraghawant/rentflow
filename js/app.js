@@ -88,7 +88,9 @@ const state = {
   bills: [],
   billsMap: {}, // key: room_id
   summary: null,
-  activeView: 'billing-view'
+  activeView: 'billing-view',
+  layoutMode: localStorage.getItem('rentflow_layout') || 'side',
+  activeRoomIndex: 0
 };
 
 // Bilingual Marathi & English Translations
@@ -206,7 +208,9 @@ const TRANSLATIONS = {
     all_settled: 'All Settled (₹0)',
     billed_breakdown_label: 'Rent: ₹{rent} | Light: ₹{light}',
     paid_breakdown_label: 'Rent: ₹{rent} | Light: ₹{light}',
-    deposit_held_text: 'Deposit Held: ₹{amount}'
+    deposit_held_text: 'Deposit Held: ₹{amount}',
+    layout_side_by_side: 'Side by Side',
+    layout_vertical_list: 'List'
   },
   mr: {
     nav_bill_generator: 'वीज व भाडे बिल',
@@ -321,7 +325,9 @@ const TRANSLATIONS = {
     all_settled: 'सर्व हिशोब पूर्ण (₹0)',
     billed_breakdown_label: 'भाडे: ₹{rent} | लाईट: ₹{light}',
     paid_breakdown_label: 'भाडे: ₹{rent} | लाईट: ₹{light}',
-    deposit_held_text: 'जमा डिपॉझिट: ₹{amount}'
+    deposit_held_text: 'जमा डिपॉझिट: ₹{amount}',
+    layout_side_by_side: 'शेजारी-शेजारी (कार्ड्स)',
+    layout_vertical_list: 'यादी'
   }
 };
 
@@ -546,6 +552,173 @@ async function loadSummaryStats() {
   }
 }
 
+// Mobile Card Carousel & Layout Mode Controls
+function setLayoutMode(mode) {
+  state.layoutMode = mode;
+  try {
+    localStorage.setItem('rentflow_layout', mode);
+  } catch (e) {
+    // Ignore localStorage errors
+  }
+
+  const container = document.getElementById('room-bills-container');
+  const btnSide = document.getElementById('btn-layout-side');
+  const btnStack = document.getElementById('btn-layout-stack');
+  const navStrip = document.getElementById('room-nav-strip');
+  const dotsContainer = document.getElementById('carousel-dots-indicator');
+
+  if (container) {
+    if (mode === 'side') {
+      container.classList.add('side-by-side');
+      container.classList.remove('vertical-stack');
+    } else {
+      container.classList.remove('side-by-side');
+      container.classList.add('vertical-stack');
+    }
+  }
+
+  if (btnSide) btnSide.classList.toggle('active', mode === 'side');
+  if (btnStack) btnStack.classList.toggle('active', mode === 'stack');
+
+  if (navStrip) {
+    navStrip.style.display = (state.rooms && state.rooms.length > 1) ? 'flex' : 'none';
+  }
+  if (dotsContainer) {
+    dotsContainer.style.display = (mode === 'side' && state.rooms && state.rooms.length > 1) ? 'flex' : 'none';
+  }
+}
+window.setLayoutMode = setLayoutMode;
+
+// Render Room Quick Navigation Pills (Instant jump on mobile)
+function renderRoomNavPills() {
+  const navStrip = document.getElementById('room-nav-strip');
+  const dotsContainer = document.getElementById('carousel-dots-indicator');
+  if (!navStrip) return;
+
+  if (!state.rooms || state.rooms.length === 0) {
+    navStrip.innerHTML = '';
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    return;
+  }
+
+  navStrip.style.display = state.rooms.length > 1 ? 'flex' : 'none';
+  if (dotsContainer) {
+    dotsContainer.style.display = (state.layoutMode === 'side' && state.rooms.length > 1) ? 'flex' : 'none';
+  }
+
+  navStrip.innerHTML = state.rooms.map((room, idx) => {
+    const isVacant = room.status === 'vacant';
+    const bill = state.billsMap[room.id];
+    const isBilled = !!bill;
+    const isRentPaid = isBilled && (bill.rent_status === 'paid' || (bill.status === 'paid' && bill.rent_status !== 'unpaid'));
+    const isLightPaid = isBilled && (bill.light_status === 'paid' || (bill.status === 'paid' && bill.light_status !== 'unpaid'));
+
+    let statusIcon = '⏳';
+    if (isVacant) {
+      statusIcon = '⚪';
+    } else if (isRentPaid && isLightPaid) {
+      statusIcon = '✅';
+    } else if (isRentPaid || isLightPaid) {
+      statusIcon = '⚡';
+    }
+
+    const isActive = idx === state.activeRoomIndex;
+    return `
+      <button
+        type="button"
+        class="room-nav-pill ${isActive ? 'active' : ''}"
+        id="nav-pill-room-${room.id}"
+        onclick="scrollToRoomCard(${room.id}, ${idx})"
+        title="Jump to ${escapeHtml(room.room_number)}"
+      >
+        <span>${statusIcon}</span>
+        <span>${escapeHtml(room.room_number)}</span>
+      </button>
+    `;
+  }).join('');
+
+  if (dotsContainer) {
+    dotsContainer.innerHTML = state.rooms.map((room, idx) => `
+      <button
+        type="button"
+        class="carousel-dot ${idx === state.activeRoomIndex ? 'active' : ''}"
+        onclick="scrollToRoomCard(${room.id}, ${idx})"
+        title="Jump to ${escapeHtml(room.room_number)}"
+        aria-label="Room ${idx + 1}"
+      ></button>
+    `).join('');
+  }
+}
+
+// Scroll directly to room card on mobile swipe or pill tap
+function scrollToRoomCard(roomId, idx) {
+  state.activeRoomIndex = idx;
+  const container = document.getElementById('room-bills-container');
+  const card = document.getElementById(`card-room-${roomId}`);
+
+  if (card && container) {
+    if (state.layoutMode === 'side') {
+      const cardLeft = card.offsetLeft - container.offsetLeft;
+      container.scrollTo({
+        left: cardLeft,
+        behavior: 'smooth'
+      });
+    } else {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Update active states on pills and dots
+  document.querySelectorAll('.room-nav-pill').forEach((pill, pIdx) => {
+    pill.classList.toggle('active', pIdx === idx);
+  });
+  document.querySelectorAll('.carousel-dot').forEach((dot, dIdx) => {
+    dot.classList.toggle('active', dIdx === idx);
+  });
+}
+window.scrollToRoomCard = scrollToRoomCard;
+
+// Carousel scroll listener to update active pill & dot when user swipes
+function setupCarouselScrollListener() {
+  const container = document.getElementById('room-bills-container');
+  if (!container || container.dataset.scrollBound) return;
+  container.dataset.scrollBound = 'true';
+
+  let scrollTimeout = null;
+  container.addEventListener('scroll', () => {
+    if (state.layoutMode !== 'side') return;
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+
+    scrollTimeout = setTimeout(() => {
+      const scrollLeft = container.scrollLeft;
+      const cards = container.querySelectorAll('.bill-card');
+      if (cards.length === 0) return;
+
+      let closestIdx = 0;
+      let minDistance = Infinity;
+
+      cards.forEach((card, idx) => {
+        const cardOffset = card.offsetLeft - container.offsetLeft;
+        const dist = Math.abs(cardOffset - scrollLeft);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestIdx = idx;
+        }
+      });
+
+      if (state.activeRoomIndex !== closestIdx) {
+        state.activeRoomIndex = closestIdx;
+        document.querySelectorAll('.room-nav-pill').forEach((pill, pIdx) => {
+          pill.classList.toggle('active', pIdx === closestIdx);
+        });
+        document.querySelectorAll('.carousel-dot').forEach((dot, dIdx) => {
+          dot.classList.toggle('active', dIdx === closestIdx);
+        });
+      }
+    }, 60);
+  }, { passive: true });
+}
+
 // Render Room Billing Cards
 function renderRoomCards() {
   const container = document.getElementById('room-bills-container');
@@ -558,6 +731,7 @@ function renderRoomCards() {
         <button class="btn-primary" onclick="openAddRoomModal()">+ Add Your First Room & Tenant</button>
       </div>
     `;
+    renderRoomNavPills();
     return;
   }
 
@@ -844,6 +1018,10 @@ function renderRoomCards() {
       </div>
     `;
   }).join('');
+
+  // Update room navigation pills, carousel dots, and apply active layout mode
+  renderRoomNavPills();
+  setLayoutMode(state.layoutMode || 'side');
 }
 
 // Live calculation when readings or rent change on any card
@@ -1934,6 +2112,9 @@ function setupEventListeners() {
   // Settings form
   const settingsForm = document.getElementById('settings-form');
   if (settingsForm) settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+
+  // Carousel touch scroll listener
+  setupCarouselScrollListener();
 }
 
 // Utility: Escape HTML
