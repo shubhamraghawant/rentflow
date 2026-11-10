@@ -92,6 +92,33 @@ const API = {
     }
   },
 
+  async updateBillSplitStatus(id, splitData) {
+    try {
+      const bill = window.offlineStore.updateBillSplitStatus(id, splitData);
+      return { success: true, message: 'Payment status updated', bill };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async getTenantLedger(roomId) {
+    try {
+      const ledger = window.offlineStore.getTenantLedger(roomId);
+      return { success: true, ledger };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async vacateTenant(roomId, newTenantData = null) {
+    try {
+      const room = window.offlineStore.vacateTenant(roomId, newTenantData);
+      return { success: true, message: 'Tenant updated successfully', room };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
   async deleteBill(id) {
     try {
       window.offlineStore.deleteBill(id);

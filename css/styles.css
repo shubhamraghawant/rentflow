@@ -591,6 +591,12 @@ body {
   border: 1px solid var(--pastel-green-border);
 }
 
+.bill-status-pill.partial {
+  background-color: var(--pastel-amber-bg);
+  color: var(--pastel-amber-text);
+  border: 1px solid var(--pastel-amber-border);
+}
+
 .bill-status-pill.unbilled {
   background-color: var(--bg-primary);
   color: var(--text-dim);
@@ -799,6 +805,65 @@ body {
   color: var(--pastel-green-text);
   border-color: var(--pastel-green-border);
   font-weight: 800;
+}
+
+/* Split Payment Buttons (Rent Paid & Light Bill Paid) */
+.card-payment-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.btn-split-toggle {
+  width: 100%;
+  padding: 0.75rem 0.6rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: var(--transition);
+  border: 1.5px solid var(--border-subtle);
+  background-color: var(--bg-card);
+  color: var(--text-muted);
+  min-height: 48px;
+  text-align: center;
+}
+
+.btn-split-toggle:hover {
+  color: var(--text-main);
+  border-color: var(--pastel-blue-border);
+}
+
+.btn-split-toggle.is-paid {
+  background-color: var(--pastel-green-bg);
+  color: var(--pastel-green-text);
+  border-color: var(--pastel-green-border);
+  font-weight: 800;
+}
+
+.btn-text-link {
+  background: transparent;
+  border: none;
+  color: var(--pastel-blue-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.btn-text-link:hover {
+  background-color: var(--pastel-blue-bg);
+  text-decoration: underline;
 }
 
 /* Tables (Directory & History) */

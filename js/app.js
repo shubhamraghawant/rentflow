@@ -298,8 +298,30 @@ function renderRoomCards() {
       totalAmount = Math.round((Number(rentAmount) + elecAmount) * 100) / 100;
     }
 
-    const statusPillClass = isBilled ? (bill.status === 'paid' ? 'paid' : 'unpaid') : 'unbilled';
-    const statusText = isBilled ? (bill.status === 'paid' ? 'Paid' : 'Unpaid') : 'Pending Reading';
+    const isRentPaid = isBilled && (bill.rent_status === 'paid' || (bill.status === 'paid' && bill.rent_status !== 'unpaid'));
+    const isLightPaid = isBilled && (bill.light_status === 'paid' || (bill.status === 'paid' && bill.light_status !== 'unpaid'));
+
+    let statusPillClass = 'unbilled';
+    let statusText = 'Pending Reading';
+
+    if (isBilled) {
+      if (isRentPaid && isLightPaid) {
+        statusPillClass = 'paid';
+        statusText = 'Paid';
+      } else if (isRentPaid) {
+        statusPillClass = 'partial';
+        statusText = 'Rent Paid • Light Due';
+      } else if (isLightPaid) {
+        statusPillClass = 'partial';
+        statusText = 'Light Paid • Rent Due';
+      } else {
+        statusPillClass = 'unpaid';
+        statusText = 'Unpaid';
+      }
+    }
+
+    const rentDateLabel = isRentPaid && bill?.rent_paid_date ? ` (${formatShortDate(bill.rent_paid_date)})` : '';
+    const lightDateLabel = isLightPaid && bill?.light_paid_date ? ` (${formatShortDate(bill.light_paid_date)})` : '';
 
     return `
       <div class="bill-card ${isBilled ? 'has-bill' : 'pending-bill'}" id="card-room-${room.id}">
@@ -388,7 +410,7 @@ function renderRoomCards() {
           <span class="card-total-val" id="total-val-${room.id}">₹${totalAmount.toLocaleString('en-IN')}</span>
         </div>
 
-        <!-- Action Buttons: WhatsApp Bill (Auto-generates bill) & Mark as Paid -->
+        <!-- Action Buttons: WhatsApp Bill, Rent Paid, Light Bill Paid, View History -->
         <div class="card-actions-single">
           <button
             type="button"
@@ -399,13 +421,34 @@ function renderRoomCards() {
             <span style="font-size: 1.25rem;">💬</span> Send Bill on WhatsApp
           </button>
 
+          <!-- 2 Different Payment Options: Rent Paid & Light Bill Paid -->
+          <div class="card-payment-split-row">
+            <button
+              type="button"
+              class="btn-split-toggle ${isRentPaid ? 'is-paid' : ''}"
+              onclick="toggleSplitPaid(${room.id}, 'rent')"
+              title="Click to mark Rent as Paid or Unpaid"
+            >
+              <span>${isRentPaid ? `✅ Rent Paid${rentDateLabel}` : '⚪ Mark Rent Paid'}</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-split-toggle ${isLightPaid ? 'is-paid' : ''}"
+              onclick="toggleSplitPaid(${room.id}, 'light')"
+              title="Click to mark Light Bill as Paid or Unpaid"
+            >
+              <span>${isLightPaid ? `✅ Light Paid${lightDateLabel}` : '⚪ Mark Light Paid'}</span>
+            </button>
+          </div>
+
           <button
             type="button"
-            class="btn-paid-toggle ${isBilled && bill.status === 'paid' ? 'is-paid' : ''}"
-            onclick="toggleRoomPaid(${room.id})"
-            title="Toggle payment status between Paid and Unpaid"
+            class="btn-text-link"
+            onclick="openTenantStatementModal(${room.id})"
+            title="View complete bill and payment history for this tenant"
           >
-            <span>${isBilled && bill.status === 'paid' ? '✅ Paid (Click to Unmark)' : '⚪ Mark as Paid'}</span>
+            📜 View Tenant Ledger & Statement
           </button>
         </div>
       </div>
@@ -564,6 +607,68 @@ async function sendWhatsAppNotification(roomId) {
   handleReadingChange(roomId);
 }
 
+function formatShortDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  }
+  return dateStr;
+}
+
+// Toggle Split Payment Status (Rent Paid or Light Bill Paid)
+async function toggleSplitPaid(roomId, type) {
+  const room = state.rooms.find(r => r.id === roomId);
+  if (!room) return;
+
+  let bill = state.billsMap[roomId];
+  const currInput = document.getElementById(`curr-reading-${roomId}`);
+
+  // If bill hasn't been saved yet, auto-save it first
+  if (!bill || (currInput && Number(currInput.value) !== Number(bill.current_reading))) {
+    if (!currInput || currInput.value.trim() === '') {
+      showToast(`Please enter New Reading for Room ${room.room_number} first`, 'error');
+      if (currInput) currInput.focus();
+      return;
+    }
+    bill = await saveRoomBill(roomId, true);
+    if (!bill) return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const isRent = type === 'rent';
+
+  const currentRentPaid = bill.rent_status === 'paid' || (bill.status === 'paid' && bill.rent_status !== 'unpaid');
+  const currentLightPaid = bill.light_status === 'paid' || (bill.status === 'paid' && bill.light_status !== 'unpaid');
+
+  const newRentStatus = isRent ? (currentRentPaid ? 'unpaid' : 'paid') : (currentRentPaid ? 'paid' : 'unpaid');
+  const newLightStatus = !isRent ? (currentLightPaid ? 'unpaid' : 'paid') : (currentLightPaid ? 'paid' : 'unpaid');
+
+  const newRentDate = newRentStatus === 'paid' ? (bill.rent_paid_date || today) : null;
+  const newLightDate = newLightStatus === 'paid' ? (bill.light_paid_date || today) : null;
+
+  try {
+    const res = await API.updateBillSplitStatus(bill.id, {
+      rent_status: newRentStatus,
+      rent_paid_date: newRentDate,
+      light_status: newLightStatus,
+      light_paid_date: newLightDate
+    });
+
+    if (res.success) {
+      state.billsMap[roomId] = res.bill;
+      const label = isRent ? 'Room Rent' : 'Light Bill';
+      const action = (isRent ? newRentStatus : newLightStatus) === 'paid' ? 'marked as Paid' : 'marked as Unpaid';
+      showToast(`${label} for Room ${room.room_number} ${action}!`, 'success');
+      renderRoomCards();
+      loadSummaryStats();
+    }
+  } catch (err) {
+    showToast('Failed to update payment status: ' + err.message, 'error');
+  }
+}
+
 // Toggle Room Payment Status (Paid / Unpaid)
 async function toggleRoomPaid(roomId) {
   const room = state.rooms.find(r => r.id === roomId);
@@ -585,6 +690,226 @@ async function toggleRoomPaid(roomId) {
 
   const nextStatus = bill.status === 'paid' ? 'unpaid' : 'paid';
   await toggleBillStatus(bill.id, nextStatus);
+}
+
+// Tenant Statement & Settlement Modal Logic
+let currentStatementData = null;
+
+async function openTenantStatementModal(roomId) {
+  const room = state.rooms.find(r => r.id === roomId);
+  const ledgerRes = await API.getTenantLedger(roomId);
+  if (!ledgerRes.success) {
+    showToast('Failed to load ledger', 'error');
+    return;
+  }
+
+  const ledger = ledgerRes.ledger;
+  currentStatementData = ledger;
+
+  const roomNum = room ? room.room_number : (ledger.room?.room_number || '');
+  const tenantName = ledger.tenant_name || 'Tenant';
+  const tenantPhone = ledger.tenant_phone || '';
+
+  document.getElementById('statement-modal-title').textContent = `Statement • ${tenantName}`;
+  document.getElementById('statement-modal-subtitle').textContent = `Room ${roomNum} • ${tenantPhone || 'No contact'}`;
+
+  document.getElementById('statement-total-billed').textContent = `₹${ledger.total_billed.toLocaleString('en-IN')}`;
+  document.getElementById('statement-billed-breakdown').textContent = `Rent: ₹${ledger.total_rent_billed.toLocaleString('en-IN')} | Light: ₹${ledger.total_light_billed.toLocaleString('en-IN')}`;
+
+  document.getElementById('statement-total-paid').textContent = `₹${ledger.total_paid.toLocaleString('en-IN')}`;
+  document.getElementById('statement-paid-breakdown').textContent = `Rent: ₹${ledger.total_rent_paid.toLocaleString('en-IN')} | Light: ₹${ledger.total_light_paid.toLocaleString('en-IN')}`;
+
+  const balanceEl = document.getElementById('statement-balance-due');
+  balanceEl.textContent = `₹${ledger.balance_due.toLocaleString('en-IN')}`;
+  balanceEl.style.color = ledger.balance_due > 0 ? 'var(--pastel-amber-text)' : 'var(--pastel-green-text)';
+
+  const listContainer = document.getElementById('statement-months-list');
+  if (ledger.bills.length === 0) {
+    listContainer.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 2rem;">No bill records found for this room.</div>`;
+  } else {
+    listContainer.innerHTML = ledger.bills.map(b => {
+      const isRentPaid = b.rent_status === 'paid';
+      const isLightPaid = b.light_status === 'paid';
+      const rentPaidDate = b.rent_paid_date ? formatShortDate(b.rent_paid_date) : '';
+      const lightPaidDate = b.light_paid_date ? formatShortDate(b.light_paid_date) : '';
+
+      return `
+        <div style="background: var(--bg-card); border: 1.5px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-subtle); padding-bottom: 0.4rem;">
+            <strong style="font-size: 0.95rem; color: var(--text-main);">${formatBillingMonth(b.billing_month)}</strong>
+            <span class="bill-status-pill ${b.status === 'paid' ? 'paid' : (b.status === 'partial' ? 'partial' : 'unpaid')}">
+              ${b.status === 'paid' ? 'All Paid' : (b.status === 'partial' ? 'Partially Paid' : 'Unpaid')}
+            </span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; font-size: 0.86rem;">
+            <!-- Electricity record -->
+            <div style="background: var(--bg-primary); padding: 0.6rem 0.75rem; border-radius: var(--radius-sm);">
+              <div style="color: var(--text-dim); font-size: 0.76rem;">⚡ Light (${b.units_consumed}u @ ₹${b.electricity_rate})</div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.electricity_amount).toLocaleString('en-IN')}</div>
+              <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isLightPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
+                ${isLightPaid ? `✅ Paid ${lightPaidDate}` : '⚪ Due'}
+              </div>
+            </div>
+
+            <!-- Rent record -->
+            <div style="background: var(--bg-primary); padding: 0.6rem 0.75rem; border-radius: var(--radius-sm);">
+              <div style="color: var(--text-dim); font-size: 0.76rem;">🏠 Room Rent</div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-top: 2px;">₹${Number(b.rent_amount).toLocaleString('en-IN')}</div>
+              <div style="margin-top: 3px; font-size: 0.78rem; font-weight: 700; color: ${isRentPaid ? 'var(--pastel-green-text)' : 'var(--pastel-amber-text)'};">
+                ${isRentPaid ? `✅ Paid ${rentPaidDate}` : '⚪ Due'}
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; font-weight: 700; padding-top: 0.2rem;">
+            <span>Month Total Due:</span>
+            <span style="font-family: var(--font-mono); font-size: 1.05rem;">₹${Number(b.total_amount).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('tenant-statement-modal').classList.add('active');
+}
+
+function shareStatementWhatsApp() {
+  if (!currentStatementData) return;
+  const l = currentStatementData;
+  const settings = state.settings || {};
+  const landlordName = settings.landlord_name || 'Malganga Niwas';
+
+  let msg = `📢 *TENANT ACCOUNT STATEMENT & SETTLEMENT*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `Dear ${l.tenant_name},\n`;
+  msg += `Here is your complete billing & payment ledger for *Room ${l.room?.room_number || ''}* at *${landlordName}*:\n\n`;
+  msg += `📊 *SUMMARY:*\n`;
+  msg += `• Total Billed: ₹${l.total_billed.toLocaleString('en-IN')}\n`;
+  msg += `• Total Paid: ₹${l.total_paid.toLocaleString('en-IN')}\n`;
+  msg += `• *NET BALANCE DUE:* *₹${l.balance_due.toLocaleString('en-IN')}*\n\n`;
+  msg += `📜 *MONTHLY RECORDS:*\n`;
+
+  for (const b of l.bills) {
+    const isRentPaid = b.rent_status === 'paid';
+    const isLightPaid = b.light_status === 'paid';
+    const rentDate = b.rent_paid_date ? ` (${formatShortDate(b.rent_paid_date)})` : '';
+    const lightDate = b.light_paid_date ? ` (${formatShortDate(b.light_paid_date)})` : '';
+
+    msg += `• *${formatBillingMonth(b.billing_month)}*: Total ₹${b.total_amount.toLocaleString('en-IN')}\n`;
+    msg += `   - Rent: ₹${b.rent_amount.toLocaleString('en-IN')} [${isRentPaid ? '✅ Paid' + rentDate : '⚪ Due'}]\n`;
+    msg += `   - Light (${b.units_consumed}u): ₹${b.electricity_amount.toLocaleString('en-IN')} [${isLightPaid ? '✅ Paid' + lightDate : '⚪ Due'}]\n`;
+  }
+
+  msg += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+  if (settings.upi_id) {
+    msg += `💳 *Pay via UPI:* ${settings.upi_id}\n`;
+  }
+  if (settings.landlord_phone) {
+    msg += `📞 *GPay / PhonePe:* ${settings.landlord_phone}\n`;
+  }
+  msg += `Thank you!\n— *${landlordName}*`;
+
+  const phone = (l.tenant_phone || '').replace(/[^0-9]/g, '');
+  const cleanPhone = phone.length === 10 ? '91' + phone : phone;
+  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+function exportTenantCsv() {
+  if (!currentStatementData) return;
+  const l = currentStatementData;
+  let csv = 'Month,Room,Tenant Name,Tenant Phone,Previous Reading,Current Reading,Units Consumed,Electricity Rate (INR),Electricity Amount (INR),Electricity Status,Electricity Paid Date,Rent Amount (INR),Rent Status,Rent Paid Date,Total Due (INR),Total Paid (INR),Overall Status\n';
+
+  for (const b of l.bills) {
+    const isRentPaid = b.rent_status === 'paid';
+    const isLightPaid = b.light_status === 'paid';
+    const rentPaidDate = b.rent_paid_date || (isRentPaid ? (b.paid_date || '') : '');
+    const lightPaidDate = b.light_paid_date || (isLightPaid ? (b.paid_date || '') : '');
+    const totalPaid = b.paid_amount !== undefined ? b.paid_amount : (b.status === 'paid' ? b.total_amount : 0);
+    csv += `"${b.billing_month}","${l.room?.room_number || b.room_number}","${b.tenant_name || l.tenant_name}","${b.tenant_phone || l.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeName = (l.tenant_name || 'Tenant').replace(/\s+/g, '_');
+  a.download = `tenant-statement-Room-${l.room?.room_number || ''}-${safeName}.csv`;
+  a.click();
+  showToast('Tenant statement exported to Excel (CSV)!', 'success');
+}
+
+// Vacate / Change Tenant Logic
+let vacateTargetRoomId = null;
+
+async function openVacateTenantModal(roomId) {
+  vacateTargetRoomId = roomId;
+  const room = state.rooms.find(r => r.id === roomId);
+  if (!room) return;
+
+  document.getElementById('vacate-room-id').value = roomId;
+  document.getElementById('vacate-modal-subtitle').textContent = `Room ${room.room_number} • Currently: ${room.tenant_name} (${room.tenant_phone || 'No phone'})`;
+
+  // Reset inputs
+  document.getElementById('vacate-action-type').value = 'replace';
+  document.getElementById('new-tenant-fields').style.display = 'flex';
+  document.getElementById('vacate-new-name').value = '';
+  document.getElementById('vacate-new-phone').value = '';
+  document.getElementById('vacate-new-rent').value = room.base_rent || state.defaultRent;
+  document.getElementById('vacate-new-reading').value = room.effective_previous_reading || room.meter_initial_reading || 0;
+
+  document.getElementById('vacate-tenant-modal').classList.add('active');
+}
+
+function viewLeavingTenantStatement() {
+  if (vacateTargetRoomId) {
+    openTenantStatementModal(vacateTargetRoomId);
+  }
+}
+
+function toggleVacateFormMode() {
+  const type = document.getElementById('vacate-action-type').value;
+  const fields = document.getElementById('new-tenant-fields');
+  fields.style.display = type === 'replace' ? 'flex' : 'none';
+}
+
+async function handleVacateTenantSubmit(e) {
+  e.preventDefault();
+  const roomId = Number(document.getElementById('vacate-room-id').value);
+  const actionType = document.getElementById('vacate-action-type').value;
+
+  try {
+    if (actionType === 'replace') {
+      const newName = document.getElementById('vacate-new-name').value.trim();
+      const newPhone = document.getElementById('vacate-new-phone').value.trim();
+      const newRent = Number(document.getElementById('vacate-new-rent').value);
+      const newReading = Number(document.getElementById('vacate-new-reading').value);
+
+      if (!newName || !newPhone) {
+        showToast('Please enter new tenant name and phone number', 'error');
+        return;
+      }
+
+      await API.vacateTenant(roomId, {
+        tenant_name: newName,
+        tenant_phone: newPhone,
+        base_rent: newRent,
+        meter_initial_reading: newReading
+      });
+
+      showToast(`New tenant ${newName} assigned to room!`, 'success');
+    } else {
+      await API.vacateTenant(roomId, null);
+      showToast('Room marked as vacant and tenant cleared', 'info');
+    }
+
+    closeModal('vacate-tenant-modal');
+    await loadBillingDashboard();
+    await loadRoomsTable();
+  } catch (err) {
+    showToast('Failed to update tenant: ' + err.message, 'error');
+  }
 }
 
 // SMS Notification Trigger
@@ -744,9 +1069,11 @@ async function loadRoomsTable() {
             ${r.status}
           </span>
         </td>
-        <td style="text-align: right;">
+        <td style="text-align: right; display: flex; gap: 0.35rem; justify-content: flex-end; flex-wrap: wrap;">
+          <button class="btn-sm-action" onclick="openTenantStatementModal(${r.id})" title="View tenant statement & settlement records">📋 Statement</button>
+          <button class="btn-sm-action" style="color: var(--pastel-blue-text);" onclick="openVacateTenantModal(${r.id})" title="Vacate or change tenant details">🚪 Change Tenant</button>
           <button class="btn-sm-action" onclick="openEditRoomModal(${r.id})">✏️ Edit</button>
-          <button class="btn-sm-action" style="color: var(--accent-rose);" onclick="deleteRoomConfirm(${r.id}, '${r.room_number}')">🗑️</button>
+          <button class="btn-sm-action" style="color: var(--pastel-rose-text);" onclick="deleteRoomConfirm(${r.id}, '${r.room_number}')">🗑️</button>
         </td>
       </tr>
     `).join('');
@@ -860,7 +1187,12 @@ async function loadBillingHistory() {
         <td>₹${Number(b.rent_amount).toLocaleString('en-IN')}</td>
         <td><strong style="color: var(--accent-emerald);">₹${Number(b.total_amount).toLocaleString('en-IN')}</strong></td>
         <td>
-          <span class="bill-status-pill ${b.status === 'paid' ? 'paid' : 'unpaid'}">${b.status}</span>
+          <span class="bill-status-pill ${b.status === 'paid' ? 'paid' : (b.status === 'partial' ? 'partial' : 'unpaid')}">
+            ${b.status === 'paid' ? 'All Paid' : (b.status === 'partial' ? 'Partial' : 'Unpaid')}
+          </span>
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 3px;">
+            Rent: ${b.rent_status === 'paid' ? '✅' : '⚪'} | Light: ${b.light_status === 'paid' ? '✅' : '⚪'}
+          </div>
         </td>
         <td>
           <button class="btn-whatsapp" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; border-radius: var(--radius-sm);" onclick="sendWhatsAppNotification(${b.room_id})">💬 WhatsApp</button>
@@ -872,7 +1204,7 @@ async function loadBillingHistory() {
   }
 }
 
-// Export History to CSV
+// Export History to CSV (Excel compatible with separate Rent & Light bill dates)
 async function exportHistoryCsv() {
   try {
     const res = await API.getBills();
@@ -882,9 +1214,14 @@ async function exportHistoryCsv() {
       return;
     }
 
-    let csv = 'Month,Room,Tenant,Phone,Prev Reading,Curr Reading,Units Consumed,Electricity Rate,Electricity Amount,Rent Amount,Other Charges,Total Amount,Status,Paid Date\n';
+    let csv = 'Month,Room,Tenant Name,Tenant Phone,Previous Reading,Current Reading,Units Consumed,Electricity Rate (INR),Electricity Amount (INR),Electricity Status,Electricity Paid Date,Rent Amount (INR),Rent Status,Rent Paid Date,Total Due (INR),Total Paid (INR),Overall Status\n';
     for (const b of bills) {
-      csv += `"${b.billing_month}","${b.room_number}","${b.tenant_name}","${b.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},${b.rent_amount},${b.other_charges},${b.total_amount},"${b.status}","${b.paid_date || ''}"\n`;
+      const isRentPaid = b.rent_status === 'paid';
+      const isLightPaid = b.light_status === 'paid';
+      const rentPaidDate = b.rent_paid_date || (isRentPaid ? (b.paid_date || '') : '');
+      const lightPaidDate = b.light_paid_date || (isLightPaid ? (b.paid_date || '') : '');
+      const totalPaid = b.paid_amount !== undefined ? b.paid_amount : (b.status === 'paid' ? b.total_amount : 0);
+      csv += `"${b.billing_month}","${b.room_number}","${b.tenant_name}","${b.tenant_phone}",${b.previous_reading},${b.current_reading},${b.units_consumed},${b.electricity_rate},${b.electricity_amount},"${b.light_status || 'unpaid'}","${lightPaidDate}",${b.rent_amount},"${b.rent_status || 'unpaid'}","${rentPaidDate}",${b.total_amount},${totalPaid},"${b.status}"\n`;
     }
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -893,7 +1230,7 @@ async function exportHistoryCsv() {
     a.href = url;
     a.download = `rentflow-bills-${state.currentMonth}.csv`;
     a.click();
-    showToast('CSV downloaded successfully!', 'success');
+    showToast('Excel CSV exported with split payment records!', 'success');
   } catch (err) {
     showToast('Export failed: ' + err.message, 'error');
   }
@@ -975,6 +1312,10 @@ function setupEventListeners() {
   // Room form
   const roomForm = document.getElementById('room-form');
   if (roomForm) roomForm.addEventListener('submit', handleRoomFormSubmit);
+
+  // Vacate / Change Tenant form
+  const vacateForm = document.getElementById('vacate-tenant-form');
+  if (vacateForm) vacateForm.addEventListener('submit', handleVacateTenantSubmit);
 
   // Settings form
   const settingsForm = document.getElementById('settings-form');
